@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { BoilerplateDialog } from "./dialogs/BoilerplateDialog";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Plus, 
   Edit, 
@@ -29,7 +31,7 @@ interface BoilerplateItem {
   usageGuidelines: string;
 }
 
-const mockBoilerplates: BoilerplateItem[] = [
+const initialBoilerplates: BoilerplateItem[] = [
   {
     id: "1",
     name: "Company Short Description",
@@ -85,15 +87,72 @@ const mockBoilerplates: BoilerplateItem[] = [
 ];
 
 export const BoilerplateManager = () => {
+  const [boilerplates, setBoilerplates] = useState<BoilerplateItem[]>(initialBoilerplates);
   const [selectedBoilerplate, setSelectedBoilerplate] = useState<BoilerplateItem | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [isEditing, setIsEditing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingBoilerplate, setEditingBoilerplate] = useState<BoilerplateItem | null>(null);
+  const { toast } = useToast();
 
   const types = ['all', 'short', 'long', 'mission', 'vision', 'value-prop'];
 
   const filteredBoilerplates = selectedType === 'all' 
-    ? mockBoilerplates 
-    : mockBoilerplates.filter(item => item.type === selectedType);
+    ? boilerplates 
+    : boilerplates.filter(item => item.type === selectedType);
+
+  const handleCreateBoilerplate = () => {
+    setEditingBoilerplate(null);
+    setDialogOpen(true);
+  };
+
+  const handleEditBoilerplate = (boilerplate: BoilerplateItem) => {
+    setEditingBoilerplate(boilerplate);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteBoilerplate = (boilerplateId: string) => {
+    setBoilerplates(prev => prev.filter(b => b.id !== boilerplateId));
+    if (selectedBoilerplate?.id === boilerplateId) {
+      setSelectedBoilerplate(null);
+    }
+    toast({
+      title: "Boilerplate deleted",
+      description: "The boilerplate content has been removed."
+    });
+  };
+
+  const handleSaveBoilerplate = (boilerplateData: Omit<BoilerplateItem, 'id' | 'lastUpdated' | 'characterCount'>) => {
+    if (editingBoilerplate) {
+      // Update existing boilerplate
+      setBoilerplates(prev => prev.map(b => 
+        b.id === editingBoilerplate.id 
+          ? { 
+              ...boilerplateData, 
+              id: editingBoilerplate.id, 
+              lastUpdated: new Date().toISOString().split('T')[0],
+              characterCount: boilerplateData.content.length
+            }
+          : b
+      ));
+      toast({
+        title: "Boilerplate updated",
+        description: "The boilerplate content has been successfully updated."
+      });
+    } else {
+      // Create new boilerplate
+      const newBoilerplate: BoilerplateItem = {
+        ...boilerplateData,
+        id: Date.now().toString(),
+        lastUpdated: new Date().toISOString().split('T')[0],
+        characterCount: boilerplateData.content.length
+      };
+      setBoilerplates(prev => [...prev, newBoilerplate]);
+      toast({
+        title: "Boilerplate created",
+        description: "The new boilerplate content has been added."
+      });
+    }
+  };
 
   const getTypeBadge = (type: string) => {
     const variants = {
@@ -119,6 +178,10 @@ export const BoilerplateManager = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: "The content has been copied to your clipboard."
+    });
   };
 
   return (
@@ -132,7 +195,7 @@ export const BoilerplateManager = () => {
               Standardized copy for consistent messaging
             </p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleCreateBoilerplate}>
             <Plus className="w-4 h-4 mr-2" />
             Add Boilerplate
           </Button>
@@ -208,7 +271,7 @@ export const BoilerplateManager = () => {
           <Card className="p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">{selectedBoilerplate.name}</h3>
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
+              <Button variant="outline" size="sm" onClick={() => handleEditBoilerplate(selectedBoilerplate)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
@@ -282,12 +345,22 @@ export const BoilerplateManager = () => {
             </div>
 
             <div className="flex gap-2 pt-4 border-t">
-              <Button variant="outline" size="sm" className="flex-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleDeleteBoilerplate(selectedBoilerplate.id)}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
-              <Button variant="hero" size="sm" className="flex-1">
-                Save Changes
+              <Button 
+                variant="hero" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleEditBoilerplate(selectedBoilerplate)}
+              >
+                Edit Content
               </Button>
             </div>
           </Card>
@@ -299,6 +372,13 @@ export const BoilerplateManager = () => {
           </Card>
         )}
       </div>
+
+      <BoilerplateDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        boilerplate={editingBoilerplate}
+        onSave={handleSaveBoilerplate}
+      />
     </div>
   );
 };

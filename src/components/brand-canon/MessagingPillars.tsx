@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { PillarDialog } from "./dialogs/PillarDialog";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Plus, 
   Edit, 
@@ -33,7 +35,7 @@ interface MessagingPillar {
   icon: string;
 }
 
-const mockPillars: MessagingPillar[] = [
+const initialPillars: MessagingPillar[] = [
   {
     id: "1",
     name: "Innovation",
@@ -118,8 +120,11 @@ const getIcon = (iconName: string) => {
 };
 
 export const MessagingPillars = () => {
+  const [pillars, setPillars] = useState<MessagingPillar[]>(initialPillars);
   const [selectedPillar, setSelectedPillar] = useState<MessagingPillar | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingPillar, setEditingPillar] = useState<MessagingPillar | null>(null);
+  const { toast } = useToast();
 
   const getPriorityBadge = (priority: string) => {
     const variants = {
@@ -133,8 +138,56 @@ export const MessagingPillars = () => {
 
   const getCoverageColor = (current: number, required: number) => {
     if (current >= required) return "text-success";
-    if (current >= required * 0.8) return "text-warning";
+    if (current >= required * 0.8) return "text-secondary";
     return "text-destructive";
+  };
+
+  const handleCreatePillar = () => {
+    setEditingPillar(null);
+    setDialogOpen(true);
+  };
+
+  const handleEditPillar = (pillar: MessagingPillar) => {
+    setEditingPillar(pillar);
+    setDialogOpen(true);
+  };
+
+  const handleDeletePillar = (pillarId: string) => {
+    setPillars(prev => prev.filter(p => p.id !== pillarId));
+    if (selectedPillar?.id === pillarId) {
+      setSelectedPillar(null);
+    }
+    toast({
+      title: "Pillar deleted",
+      description: "The messaging pillar has been removed."
+    });
+  };
+
+  const handleSavePillar = (pillarData: Omit<MessagingPillar, 'id' | 'currentCoverage'>) => {
+    if (editingPillar) {
+      // Update existing pillar
+      setPillars(prev => prev.map(p => 
+        p.id === editingPillar.id 
+          ? { ...pillarData, id: editingPillar.id, currentCoverage: editingPillar.currentCoverage }
+          : p
+      ));
+      toast({
+        title: "Pillar updated",
+        description: "The messaging pillar has been successfully updated."
+      });
+    } else {
+      // Create new pillar
+      const newPillar: MessagingPillar = {
+        ...pillarData,
+        id: Date.now().toString(),
+        currentCoverage: 0
+      };
+      setPillars(prev => [...prev, newPillar]);
+      toast({
+        title: "Pillar created",
+        description: "The new messaging pillar has been added."
+      });
+    }
   };
 
   return (
@@ -143,14 +196,14 @@ export const MessagingPillars = () => {
       <div className="lg:col-span-2 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Messaging Pillars</h2>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleCreatePillar}>
             <Plus className="w-4 h-4 mr-2" />
             Add Pillar
           </Button>
         </div>
         
         <div className="grid gap-4">
-          {mockPillars.map((pillar) => (
+          {pillars.map((pillar) => (
             <Card 
               key={pillar.id} 
               className={`p-6 cursor-pointer transition-brand hover:shadow-card ${
@@ -218,7 +271,7 @@ export const MessagingPillars = () => {
                 </div>
                 <h3 className="text-lg font-medium">{selectedPillar.name}</h3>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)}>
+              <Button variant="outline" size="sm" onClick={() => handleEditPillar(selectedPillar)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
@@ -290,12 +343,22 @@ export const MessagingPillars = () => {
             </div>
 
             <div className="flex gap-2 pt-4 border-t">
-              <Button variant="outline" size="sm" className="flex-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleDeletePillar(selectedPillar.id)}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
-              <Button variant="hero" size="sm" className="flex-1">
-                Save Changes
+              <Button 
+                variant="hero" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleEditPillar(selectedPillar)}
+              >
+                Edit Pillar
               </Button>
             </div>
           </Card>
@@ -307,6 +370,13 @@ export const MessagingPillars = () => {
           </Card>
         )}
       </div>
+
+      <PillarDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        pillar={editingPillar}
+        onSave={handleSavePillar}
+      />
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { LegalDialog } from "./dialogs/LegalDialog";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Plus, 
   Edit, 
@@ -32,7 +34,7 @@ interface LegalItem {
   riskLevel: 'low' | 'medium' | 'high';
 }
 
-const mockLegalItems: LegalItem[] = [
+const initialLegalItems: LegalItem[] = [
   {
     id: "1",
     name: "General Disclaimer",
@@ -102,17 +104,67 @@ const mockLegalItems: LegalItem[] = [
 ];
 
 export const LegalCompliance = () => {
+  const [legalItems, setLegalItems] = useState<LegalItem[]>(initialLegalItems);
   const [selectedItem, setSelectedItem] = useState<LegalItem | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [showExpired, setShowExpired] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<LegalItem | null>(null);
+  const { toast } = useToast();
 
   const types = ['all', 'disclaimer', 'trademark', 'copyright', 'privacy', 'terms', 'claim'];
 
-  const filteredItems = mockLegalItems.filter(item => {
+  const filteredItems = legalItems.filter(item => {
     const typeMatch = selectedType === 'all' || item.type === selectedType;
     const statusMatch = showExpired || item.approvalStatus !== 'expired';
     return typeMatch && statusMatch;
   });
+
+  const handleCreateItem = () => {
+    setEditingItem(null);
+    setDialogOpen(true);
+  };
+
+  const handleEditItem = (item: LegalItem) => {
+    setEditingItem(item);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    setLegalItems(prev => prev.filter(item => item.id !== itemId));
+    if (selectedItem?.id === itemId) {
+      setSelectedItem(null);
+    }
+    toast({
+      title: "Legal item deleted",
+      description: "The legal item has been removed."
+    });
+  };
+
+  const handleSaveItem = (itemData: Omit<LegalItem, 'id' | 'lastReviewed'>) => {
+    if (editingItem) {
+      setLegalItems(prev => prev.map(item => 
+        item.id === editingItem.id 
+          ? { ...itemData, id: editingItem.id, lastReviewed: new Date().toISOString().split('T')[0] }
+          : item
+      ));
+      toast({
+        title: "Legal item updated",
+        description: "The legal item has been successfully updated."
+      });
+    } else {
+      const newItem: LegalItem = {
+        ...itemData,
+        id: Date.now().toString(),
+        lastReviewed: new Date().toISOString().split('T')[0]
+      };
+      setLegalItems(prev => [...prev, newItem]);
+      toast({
+        title: "Legal item created",
+        description: "The new legal item has been added."
+      });
+    }
+  };
 
   const getTypeBadge = (type: string) => {
     const variants = {
@@ -167,7 +219,7 @@ export const LegalCompliance = () => {
               Manage disclaimers, trademarks, and legal requirements
             </p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleCreateItem}>
             <Plus className="w-4 h-4 mr-2" />
             Add Legal Item
           </Button>
@@ -264,7 +316,7 @@ export const LegalCompliance = () => {
           <Card className="p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">{selectedItem.name}</h3>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => handleEditItem(selectedItem)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
@@ -355,12 +407,22 @@ export const LegalCompliance = () => {
             </div>
 
             <div className="flex gap-2 pt-4 border-t">
-              <Button variant="outline" size="sm" className="flex-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleDeleteItem(selectedItem.id)}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
-              <Button variant="hero" size="sm" className="flex-1">
-                Save Changes
+              <Button 
+                variant="hero" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleEditItem(selectedItem)}
+              >
+                Edit Legal Item
               </Button>
             </div>
           </Card>
@@ -372,6 +434,13 @@ export const LegalCompliance = () => {
           </Card>
         )}
       </div>
+
+      <LegalDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        legalItem={editingItem}
+        onSave={handleSaveItem}
+      />
     </div>
   );
 };

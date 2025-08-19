@@ -23,6 +23,13 @@ import { LegalCompliance } from "./LegalCompliance";
 import { VersionHistory } from "./VersionHistory";
 
 export const BrandCanonDashboard = () => {
+  const [ingestionDialogOpen, setIngestionDialogOpen] = useState(false);
+
+  const handleIngestionComplete = (data: any) => {
+    console.log("Brand ingestion completed:", data);
+    // Handle the ingested data here
+    setIngestionDialogOpen(false);
+  };
   const [activeVersion, setActiveVersion] = useState("v2.1.0");
   const [isDraft, setIsDraft] = useState(false);
 
