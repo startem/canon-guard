@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BrandProvider } from "@/hooks/useBrandContext";
 import { 
   Building2, 
   Palette, 
@@ -43,7 +44,8 @@ export const BrandCanonDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <BrandProvider>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-gradient-card">
         <div className="container mx-auto px-6 py-6">
@@ -103,29 +105,29 @@ export const BrandCanonDashboard = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
-        <Tabs defaultValue="hierarchy" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:grid-cols-6">
-            <TabsTrigger value="hierarchy" className="flex items-center gap-2">
+        <Tabs defaultValue="hierarchy" className="space-y-8">
+          <TabsList className="w-full grid grid-cols-6 lg:flex lg:w-auto bg-gradient-card">
+            <TabsTrigger value="hierarchy" className="flex items-center gap-2 min-w-[120px]">
               <Building2 className="w-4 h-4" />
               <span className="hidden sm:inline">Hierarchy</span>
             </TabsTrigger>
-            <TabsTrigger value="design" className="flex items-center gap-2">
+            <TabsTrigger value="design" className="flex items-center gap-2 min-w-[120px]">
               <Palette className="w-4 h-4" />
               <span className="hidden sm:inline">Design</span>
             </TabsTrigger>
-            <TabsTrigger value="messaging" className="flex items-center gap-2">
+            <TabsTrigger value="messaging" className="flex items-center gap-2 min-w-[120px]">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Messaging</span>
             </TabsTrigger>
-            <TabsTrigger value="boilerplate" className="flex items-center gap-2">
+            <TabsTrigger value="boilerplate" className="flex items-center gap-2 min-w-[120px]">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Boilerplate</span>
             </TabsTrigger>
-            <TabsTrigger value="legal" className="flex items-center gap-2">
+            <TabsTrigger value="legal" className="flex items-center gap-2 min-w-[120px]">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">Legal</span>
             </TabsTrigger>
-            <TabsTrigger value="versions" className="flex items-center gap-2">
+            <TabsTrigger value="versions" className="flex items-center gap-2 min-w-[120px]">
               <GitBranch className="w-4 h-4" />
               <span className="hidden sm:inline">Versions</span>
             </TabsTrigger>
@@ -157,5 +159,6 @@ export const BrandCanonDashboard = () => {
         </Tabs>
       </div>
     </div>
+    </BrandProvider>
   );
 };

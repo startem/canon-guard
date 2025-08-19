@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ColorTokenDialog } from "./dialogs/ColorTokenDialog";
+import { BrandSelector } from "./BrandSelector";
+import { useBrandContext } from "@/hooks/useBrandContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
   Edit, 
@@ -109,14 +113,20 @@ const mockColorTokens: ColorToken[] = [
 ];
 
 export const ColorTokens = () => {
+  const { colorTokens, selectedBrandId, addColorToken, updateColorToken, deleteColorToken, getItemsByBrand } = useBrandContext();
   const [selectedToken, setSelectedToken] = useState<ColorToken | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingToken, setEditingToken] = useState<ColorToken | undefined>(undefined);
+  const { toast } = useToast();
+
+  // Filter tokens by selected brand and category
+  const brandFilteredTokens = getItemsByBrand(colorTokens, selectedBrandId || undefined);
+  const filteredTokens = selectedCategory === 'all' 
+    ? brandFilteredTokens 
+    : brandFilteredTokens.filter(token => token.category === selectedCategory);
 
   const categories = ['all', 'primary', 'secondary', 'accent', 'neutral', 'status'];
-
-  const filteredTokens = selectedCategory === 'all' 
-    ? mockColorTokens 
-    : mockColorTokens.filter(token => token.category === selectedCategory);
 
   const getCategoryBadge = (category: string) => {
     const variants = {
@@ -132,10 +142,87 @@ export const ColorTokens = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: `${text} has been copied to your clipboard.`,
+    });
+  };
+
+  const handleCreateToken = () => {
+    setEditingToken(undefined);
+    setDialogOpen(true);
+  };
+
+  const handleEditToken = (token: ColorToken) => {
+    setEditingToken(token);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteToken = (tokenId: string) => {
+    deleteColorToken(tokenId);
+    if (selectedToken?.id === tokenId) {
+      setSelectedToken(null);
+    }
+    toast({
+      title: "Color token deleted",
+      description: "The color token has been removed from the palette.",
+    });
+  };
+
+  const handleSaveToken = (token: ColorToken) => {
+    if (editingToken) {
+      updateColorToken(token);
+      toast({
+        title: "Color token updated",
+        description: "The color token has been successfully updated.",
+      });
+    } else {
+      addColorToken(token);
+      toast({
+        title: "Color token created",
+        description: "A new color token has been added to the palette.",
+      });
+    }
+  };
+
+  const exportPalette = () => {
+    const paletteData = {
+      name: "Brand Color Palette",
+      version: "1.0.0",
+      exported: new Date().toISOString(),
+      brandId: selectedBrandId,
+      colors: brandFilteredTokens.map(token => ({
+        name: token.name,
+        hex: token.hex,
+        rgb: token.rgb,
+        cmyk: token.cmyk,
+        category: token.category,
+        usage: token.usage,
+        accessibility: token.accessibility
+      }))
+    };
+
+    const dataStr = JSON.stringify(paletteData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `brand-palette-${selectedBrandId || 'all'}-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+
+    toast({
+      title: "Palette exported",
+      description: "Your color palette has been exported as JSON.",
+    });
   };
 
   return (
     <div className="space-y-6">
+      {/* Brand Selector */}
+      <BrandSelector />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -145,11 +232,11 @@ export const ColorTokens = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={exportPalette}>
             <Download className="w-4 h-4 mr-2" />
             Export Palette
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleCreateToken}>
             <Plus className="w-4 h-4 mr-2" />
             Add Color
           </Button>
@@ -273,13 +360,19 @@ export const ColorTokens = () => {
       {/* Detailed Modal/Panel would go here when selectedToken is set */}
       {selectedToken && (
         <Card className="mt-6 p-6 bg-gradient-card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">{selectedToken.name}</h3>
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Token
-            </Button>
-          </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">{selectedToken.name}</h3>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleEditToken(selectedToken)}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Token
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleDeleteToken(selectedToken.id)}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            </div>
           
           <p className="text-muted-foreground mb-4">{selectedToken.description}</p>
           
@@ -315,6 +408,13 @@ export const ColorTokens = () => {
           </div>
         </Card>
       )}
+
+      <ColorTokenDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        colorToken={editingToken}
+        onSave={handleSaveToken}
+      />
     </div>
   );
 };
