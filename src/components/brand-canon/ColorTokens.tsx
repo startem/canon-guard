@@ -120,13 +120,14 @@ export const ColorTokens = () => {
   const [editingToken, setEditingToken] = useState<ColorToken | undefined>(undefined);
   const { toast } = useToast();
 
+  // Define categories constant
+  const categories = ['all', 'primary', 'secondary', 'accent', 'neutral', 'status'];
+
   // Filter tokens by selected brand and category
   const brandFilteredTokens = getItemsByBrand(colorTokens, selectedBrandId || undefined);
   const filteredTokens = selectedCategory === 'all' 
     ? brandFilteredTokens 
     : brandFilteredTokens.filter(token => token.category === selectedCategory);
-
-  const categories = ['all', 'primary', 'secondary', 'accent', 'neutral', 'status'];
 
   const getCategoryBadge = (category: string) => {
     const variants = {
