@@ -121,7 +121,7 @@ export const LegalCompliance = () => {
       copyright: "secondary",
       privacy: "outline",
       terms: "outline",
-      claim: "warning"
+      claim: "secondary"
     } as const;
     
     return <Badge variant={variants[type as keyof typeof variants]}>{type}</Badge>;
