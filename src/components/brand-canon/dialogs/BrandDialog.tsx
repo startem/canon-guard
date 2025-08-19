@@ -574,7 +574,6 @@ export const BrandDialog = ({ open, onOpenChange, brand, onSave, parentBrand }: 
                           }
                         }))}
                         placeholder={`@${platform}handle`}
-                        size="sm"
                       />
                     </div>
                   ))}
