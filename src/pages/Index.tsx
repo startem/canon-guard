@@ -1,15 +1,9 @@
-import { HeroSection } from "@/components/HeroSection";
-import { FeaturesSection } from "@/components/FeaturesSection";
-import { DashboardPreview } from "@/components/DashboardPreview";
-import { Header } from "@/components/Header";
+import { BrandCanonDashboard } from "@/components/brand-canon/BrandCanonDashboard";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <Header />
-      <HeroSection />
-      <FeaturesSection />
-      <DashboardPreview />
+      <BrandCanonDashboard />
     </div>
   );
 };
