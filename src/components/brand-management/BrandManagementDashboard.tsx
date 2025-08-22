@@ -38,20 +38,20 @@ import { IssueManagement } from "./IssueManagement";
 import { BrandReporting } from "./BrandReporting";
 
 export const BrandManagementDashboard = () => {
-  const [activeAudit, setActiveAudit] = useState("overview");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedAudit, setSelectedAudit] = useState<string | null>(null);
   const [isRunningAudit, setIsRunningAudit] = useState<string | null>(null);
 
   const executeAudit = (auditId: string) => {
     console.log("Executing audit:", auditId);
     setIsRunningAudit(auditId);
-    // Switch to audits tab first
-    setActiveAudit("audits");
+    setActiveTab("audits");
+    setSelectedAudit(`audit-${auditId}`);
     
     // Simulate audit execution
     setTimeout(() => {
       console.log("Audit completed, showing results for:", auditId);
       setIsRunningAudit(null);
-      setActiveAudit(`audit-${auditId}`);
     }, 2000);
   };
 
@@ -213,14 +213,8 @@ export const BrandManagementDashboard = () => {
                   size="sm"
                   onClick={() => {
                     console.log("Running full audit from header");
-                    setActiveAudit("audits");
-                    // Run all audits sequentially
-                    auditTypes.forEach((audit, index) => {
-                      setTimeout(() => {
-                        console.log("Running audit:", audit.id);
-                        executeAudit(audit.id);
-                      }, index * 3000); // 3 second intervals
-                    });
+                    setActiveTab("audits");
+                    executeAudit("consistency");
                   }}
                 >
                   <Monitor className="w-4 h-4 mr-2" />
@@ -268,7 +262,7 @@ export const BrandManagementDashboard = () => {
 
         {/* Main Content */}
         <div className="container mx-auto px-6 py-8">
-          <Tabs value={activeAudit} onValueChange={setActiveAudit} className="space-y-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className="w-full grid grid-cols-4 lg:flex lg:w-auto bg-gradient-card">
               <TabsTrigger value="overview" className="flex items-center gap-2 min-w-[120px]">
                 <BarChart3 className="w-4 h-4" />
@@ -293,9 +287,9 @@ export const BrandManagementDashboard = () => {
             </TabsContent>
 
             <TabsContent value="audits" className="space-y-6">
-              {/* Check if we're showing a specific audit or the audit selection */}
-              {activeAudit.startsWith('audit-') ? (
+              {selectedAudit ? (
                 <div className="space-y-6">
+                  {/* Running Audit Indicator */}
                   {isRunningAudit && (
                     <Card className="bg-primary/5 border-primary/20">
                       <CardContent className="p-6">
@@ -310,26 +304,29 @@ export const BrandManagementDashboard = () => {
                     </Card>
                   )}
                   
-                  {/* Render the specific audit component */}
-                  {activeAudit === 'audit-consistency' && <BrandConsistencyAudit />}
-                  {activeAudit === 'audit-perception' && <BrandPerceptionAudit />}
-                  {activeAudit === 'audit-competitor' && <CompetitorAnalysisAudit />}
-                  {activeAudit === 'audit-social' && <SocialMediaAudit />}
-                  {activeAudit === 'audit-content' && <ContentAudit />}
-                  {activeAudit === 'audit-visual' && <VisualIdentityAudit />}
-                  {activeAudit === 'audit-legal' && <LegalComplianceAudit />}
-                  {activeAudit === 'audit-digital' && <DigitalAssetAudit />}
-                  {activeAudit === 'audit-employee' && <EmployeeBrandAudit />}
-                  {activeAudit === 'audit-customer' && <CustomerExperienceAudit />}
-                  
-                  {/* Back to audits button */}
+                  {/* Back Button */}
                   <Button 
                     variant="outline" 
-                    onClick={() => setActiveAudit("audits")}
+                    onClick={() => {
+                      setSelectedAudit(null);
+                      setIsRunningAudit(null);
+                    }}
                     className="mb-4"
                   >
                     ← Back to Audit Selection
                   </Button>
+                  
+                  {/* Render Audit Components */}
+                  {selectedAudit === 'audit-consistency' && <BrandConsistencyAudit />}
+                  {selectedAudit === 'audit-perception' && <BrandPerceptionAudit />}
+                  {selectedAudit === 'audit-competitor' && <CompetitorAnalysisAudit />}
+                  {selectedAudit === 'audit-social' && <SocialMediaAudit />}
+                  {selectedAudit === 'audit-content' && <ContentAudit />}
+                  {selectedAudit === 'audit-visual' && <VisualIdentityAudit />}
+                  {selectedAudit === 'audit-legal' && <LegalComplianceAudit />}
+                  {selectedAudit === 'audit-digital' && <DigitalAssetAudit />}
+                  {selectedAudit === 'audit-employee' && <EmployeeBrandAudit />}
+                  {selectedAudit === 'audit-customer' && <CustomerExperienceAudit />}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -338,7 +335,7 @@ export const BrandManagementDashboard = () => {
                     <Card>
                       <CardHeader>
                         <CardTitle>Audit Types</CardTitle>
-                        <CardDescription>Select an audit to view details</CardDescription>
+                        <CardDescription>Select an audit to run analysis</CardDescription>
                       </CardHeader>
                       <CardContent className="p-0">
                         <div className="space-y-1">
@@ -347,13 +344,8 @@ export const BrandManagementDashboard = () => {
                             return (
                               <button
                                 key={audit.id}
-                                onClick={() => {
-                                  console.log("Selecting audit from sidebar:", audit.id);
-                                  executeAudit(audit.id);
-                                }}
-                                className={`w-full text-left p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0 ${
-                                  activeAudit === `audit-${audit.id}` ? 'bg-primary/10 border-primary/20' : ''
-                                }`}
+                                onClick={() => executeAudit(audit.id)}
+                                className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0 hover:bg-primary/5"
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
@@ -386,35 +378,28 @@ export const BrandManagementDashboard = () => {
                   <div className="lg:col-span-2">
                     <Card>
                       <CardHeader>
-                        <CardTitle>Select an Audit Type</CardTitle>
+                        <CardTitle>Ready to Audit Your Brand</CardTitle>
                         <CardDescription>
-                          Choose an audit from the left or run a comprehensive analysis
+                          Choose an audit type to run comprehensive brand analysis
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-center py-8">
-                          <Monitor className="w-16 h-16 mx-auto mb-4 text-primary opacity-50" />
-                          <h3 className="text-lg font-semibold mb-2">Ready to Audit Your Brand</h3>
-                          <p className="text-muted-foreground mb-6">
-                            Select a specific audit type from the left panel to view detailed analysis,
-                            or run a full comprehensive audit of all brand elements.
+                        <div className="text-center py-12">
+                          <Monitor className="w-20 h-20 mx-auto mb-6 text-primary opacity-30" />
+                          <h3 className="text-xl font-semibold mb-3">Select an Audit Type</h3>
+                          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                            Click on any audit type from the left panel to run a detailed analysis of your brand's performance in that area.
                           </p>
                           <Button 
                             variant="hero" 
                             size="lg"
                             onClick={() => {
-                              console.log("Running full audit");
-                              // Run all audits sequentially
-                              auditTypes.forEach((audit, index) => {
-                                setTimeout(() => {
-                                  console.log("Running audit:", audit.id);
-                                  executeAudit(audit.id);
-                                }, index * 3000); // 3 second intervals
-                              });
+                              console.log("Running full audit sequence");
+                              executeAudit("consistency");
                             }}
                           >
                             <Play className="w-5 h-5 mr-2" />
-                            Run Full Brand Audit
+                            Start with Brand Consistency Audit
                           </Button>
                         </div>
                       </CardContent>
