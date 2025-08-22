@@ -299,12 +299,135 @@ export const BrandPerceptionAudit = () => {
                 
                 <p className="text-sm">{mention.text}</p>
                 
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>Reach: {mention.reach.toLocaleString()}</span>
-                  <span>Engagement: {mention.engagement}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>Reach: {mention.reach.toLocaleString()}</span>
+                    <span>Engagement: {mention.engagement}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Respond
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sentiment Analysis Deep Dive */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Sentiment Drivers</CardTitle>
+            <CardDescription>Key topics affecting brand sentiment</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Product Quality</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-success">+8.2%</span>
+                  <TrendingUp className="w-4 h-4 text-success" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Customer Service</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-success">+5.7%</span>
+                  <TrendingUp className="w-4 h-4 text-success" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Pricing</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-destructive">-2.1%</span>
+                  <TrendingDown className="w-4 h-4 text-destructive" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Brand Identity</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-success">+12.4%</span>
+                  <TrendingUp className="w-4 h-4 text-success" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Engagement Metrics</CardTitle>
+            <CardDescription>Cross-platform engagement performance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-center p-4 border rounded-lg">
+                <div className="text-2xl font-bold text-primary mb-1">4.2%</div>
+                <div className="text-sm text-muted-foreground">Avg Engagement Rate</div>
+                <div className="text-xs text-success mt-1">+0.8% vs last month</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 border rounded-lg">
+                  <div className="text-lg font-bold text-primary">892</div>
+                  <div className="text-xs text-muted-foreground">Shares/Retweets</div>
+                </div>
+                <div className="text-center p-3 border rounded-lg">
+                  <div className="text-lg font-bold text-primary">2.1k</div>
+                  <div className="text-xs text-muted-foreground">Comments/Replies</div>
+                </div>
+              </div>
+              
+              <div className="text-center p-3 border rounded-lg">
+                <div className="text-lg font-bold text-primary">15.7k</div>
+                <div className="text-xs text-muted-foreground">Total Interactions</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alert Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Sentiment Monitoring Alerts</CardTitle>
+          <CardDescription>Configure alerts for sentiment changes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium">Negative Spike</span>
+                <Badge className="bg-destructive/10 text-destructive border-destructive/20">Active</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">Alert when negative sentiment exceeds 30%</p>
+              <Button variant="outline" size="sm" className="w-full">Configure</Button>
+            </div>
+            
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium">Volume Surge</span>
+                <Badge variant="secondary">Inactive</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">Alert when mention volume increases 200%</p>
+              <Button variant="outline" size="sm" className="w-full">Configure</Button>
+            </div>
+            
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium">Competitor Mention</span>
+                <Badge className="bg-warning/10 text-warning border-warning/20">Active</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">Alert when mentioned with competitors</p>
+              <Button variant="outline" size="sm" className="w-full">Configure</Button>
+            </div>
           </div>
         </CardContent>
       </Card>

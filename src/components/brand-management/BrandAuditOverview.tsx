@@ -185,6 +185,7 @@ export const BrandAuditOverview = ({ auditTypes }: BrandAuditOverviewProps) => {
                     variant="outline" 
                     size="sm" 
                     className="w-full"
+                    onClick={() => window.location.hash = `audit-${audit.id}`}
                   >
                     <Play className="w-3 h-3 mr-2" />
                     Run Audit

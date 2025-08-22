@@ -278,7 +278,9 @@ export const BrandManagementDashboard = () => {
                             <button
                               key={audit.id}
                               onClick={() => setActiveAudit(`audit-${audit.id}`)}
-                              className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0"
+                              className={`w-full text-left p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0 ${
+                                activeAudit === `audit-${audit.id}` ? 'bg-primary/10 border-primary/20' : ''
+                              }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">

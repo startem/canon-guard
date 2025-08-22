@@ -157,7 +157,7 @@ export const BrandConsistencyAudit = () => {
           </div>
           
           <div className="flex gap-3 mt-6">
-            <Button variant="hero">
+            <Button variant="hero" onClick={() => window.location.reload()}>
               <Play className="w-4 h-4 mr-2" />
               Run New Audit
             </Button>
@@ -263,18 +263,120 @@ export const BrandConsistencyAudit = () => {
         </CardContent>
       </Card>
 
-      {/* Compliance Trends */}
+      {/* Asset Distribution */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Asset Distribution</CardTitle>
+            <CardDescription>Brand assets by type and compliance status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Email Templates</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">45/47</span>
+                  <Progress value={95.7} className="w-24 h-2" />
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Social Media Posts</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">89/91</span>
+                  <Progress value={97.8} className="w-24 h-2" />
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Marketing Materials</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">52/59</span>
+                  <Progress value={88.1} className="w-24 h-2" />
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Website Pages</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">41/44</span>
+                  <Progress value={93.2} className="w-24 h-2" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Issue Priority Matrix</CardTitle>
+            <CardDescription>Current issues by severity and impact</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-destructive/5">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-destructive"></div>
+                  <span className="text-sm font-medium">Critical Issues</span>
+                </div>
+                <Badge variant="destructive">0</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-warning/5">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-warning"></div>
+                  <span className="text-sm font-medium">High Priority</span>
+                </div>
+                <Badge className="bg-warning/10 text-warning border-warning/20">2</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-primary/5">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary"></div>
+                  <span className="text-sm font-medium">Medium Priority</span>
+                </div>
+                <Badge variant="secondary">0</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recommendations */}
       <Card>
         <CardHeader>
-          <CardTitle>Compliance Trends</CardTitle>
-          <CardDescription>Brand consistency performance over time</CardDescription>
+          <CardTitle>AI Recommendations</CardTitle>
+          <CardDescription>Automated suggestions to improve brand consistency</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Compliance trend chart would be displayed here</p>
-              <p className="text-sm">Showing 30-day compliance history</p>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-4 border rounded-lg bg-success/5">
+              <CheckCircle2 className="w-5 h-5 text-success mt-0.5" />
+              <div>
+                <div className="font-medium text-success">Excellent Logo Compliance</div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your logo usage is 95% compliant. Consider creating automated templates to maintain this standard.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 border rounded-lg bg-warning/5">
+              <AlertCircle className="w-5 h-5 text-warning mt-0.5" />
+              <div>
+                <div className="font-medium text-warning">Typography Standardization Needed</div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  7 documents use non-brand fonts. Update style templates and provide font installation guide.
+                </p>
+                <Button variant="outline" size="sm" className="mt-2">
+                  View Font Guide
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 border rounded-lg bg-primary/5">
+              <Eye className="w-5 h-5 text-primary mt-0.5" />
+              <div>
+                <div className="font-medium text-primary">Monitor Email Templates</div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Set up automated monitoring for email template changes to catch compliance issues early.
+                </p>
+                <Button variant="outline" size="sm" className="mt-2">
+                  Setup Monitoring
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
