@@ -20,7 +20,8 @@ import {
   Globe,
   Smartphone,
   Heart,
-  RefreshCw
+  RefreshCw,
+  Play
 } from "lucide-react";
 import { BrandAuditOverview } from "./BrandAuditOverview";
 import { BrandConsistencyAudit } from "./audits/BrandConsistencyAudit";
@@ -41,13 +42,16 @@ export const BrandManagementDashboard = () => {
   const [isRunningAudit, setIsRunningAudit] = useState<string | null>(null);
 
   const executeAudit = (auditId: string) => {
+    console.log("Executing audit:", auditId);
     setIsRunningAudit(auditId);
-    setActiveAudit(`audit-${auditId}`);
+    // Switch to audits tab first
+    setActiveAudit("audits");
     
     // Simulate audit execution
     setTimeout(() => {
+      console.log("Audit completed, showing results for:", auditId);
       setIsRunningAudit(null);
-      // Update audit data here in real implementation
+      setActiveAudit(`audit-${auditId}`);
     }, 2000);
   };
 
@@ -204,7 +208,21 @@ export const BrandManagementDashboard = () => {
                   <Settings className="w-4 h-4 mr-2" />
                   Audit Settings
                 </Button>
-                <Button variant="hero" size="sm">
+                <Button 
+                  variant="hero" 
+                  size="sm"
+                  onClick={() => {
+                    console.log("Running full audit from header");
+                    setActiveAudit("audits");
+                    // Run all audits sequentially
+                    auditTypes.forEach((audit, index) => {
+                      setTimeout(() => {
+                        console.log("Running audit:", audit.id);
+                        executeAudit(audit.id);
+                      }, index * 3000); // 3 second intervals
+                    });
+                  }}
+                >
                   <Monitor className="w-4 h-4 mr-2" />
                   Run Full Audit
                 </Button>
@@ -275,100 +293,135 @@ export const BrandManagementDashboard = () => {
             </TabsContent>
 
             <TabsContent value="audits" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Audit Type Selection */}
-                <div className="lg:col-span-1">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Audit Types</CardTitle>
-                      <CardDescription>Select an audit to view details</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="space-y-1">
-                        {auditTypes.map((audit) => {
-                          const Icon = audit.icon;
-                          return (
-                            <button
-                              key={audit.id}
-                              onClick={() => setActiveAudit(`audit-${audit.id}`)}
-                              className={`w-full text-left p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0 ${
-                                activeAudit === `audit-${audit.id}` ? 'bg-primary/10 border-primary/20' : ''
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <Icon className="w-5 h-5 text-primary" />
-                                  <div>
-                                    <div className="font-medium">{audit.name}</div>
-                                    <div className="text-sm text-muted-foreground">{audit.lastRun}</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className={`text-lg font-bold ${getStatusColor(audit.status)}`}>
-                                    {audit.score}%
-                                  </div>
-                                  {audit.issues > 0 && (
-                                    <Badge variant="destructive" className="text-xs">
-                                      {audit.issues}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Audit Details */}
-                <div className="lg:col-span-2">
-                  {activeAudit === 'audits' ? (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Audit Details</CardTitle>
-                        <CardDescription>
-                          Select an audit type from the left to view detailed analysis
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-8 text-muted-foreground">
-                          <Monitor className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p>Choose an audit type to view comprehensive analysis and insights</p>
+              {/* Check if we're showing a specific audit or the audit selection */}
+              {activeAudit.startsWith('audit-') ? (
+                <div className="space-y-6">
+                  {isRunningAudit && (
+                    <Card className="bg-primary/5 border-primary/20">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <RefreshCw className="w-5 h-5 animate-spin text-primary" />
+                          <div>
+                            <div className="font-medium">Running {auditTypes.find(a => a.id === isRunningAudit)?.name} Audit...</div>
+                            <div className="text-sm text-muted-foreground">Analyzing brand assets and compliance</div>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
-                  ) : (
-                    <div className="space-y-6">
-                      {isRunningAudit && (
-                        <Card className="bg-primary/5 border-primary/20">
-                          <CardContent className="p-6">
-                            <div className="flex items-center gap-3">
-                              <RefreshCw className="w-5 h-5 animate-spin text-primary" />
-                              <div>
-                                <div className="font-medium">Running {auditTypes.find(a => a.id === isRunningAudit)?.name} Audit...</div>
-                                <div className="text-sm text-muted-foreground">Analyzing brand assets and compliance</div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                      {/* Show the appropriate audit component based on activeAudit */}
-                      {activeAudit === 'audit-consistency' && <BrandConsistencyAudit />}
-                      {activeAudit === 'audit-perception' && <BrandPerceptionAudit />}
-                      {activeAudit === 'audit-competitor' && <CompetitorAnalysisAudit />}
-                      {activeAudit === 'audit-social' && <SocialMediaAudit />}
-                      {activeAudit === 'audit-content' && <ContentAudit />}
-                      {activeAudit === 'audit-visual' && <VisualIdentityAudit />}
-                      {activeAudit === 'audit-legal' && <LegalComplianceAudit />}
-                      {activeAudit === 'audit-digital' && <DigitalAssetAudit />}
-                      {activeAudit === 'audit-employee' && <EmployeeBrandAudit />}
-                      {activeAudit === 'audit-customer' && <CustomerExperienceAudit />}
-                    </div>
                   )}
+                  
+                  {/* Render the specific audit component */}
+                  {activeAudit === 'audit-consistency' && <BrandConsistencyAudit />}
+                  {activeAudit === 'audit-perception' && <BrandPerceptionAudit />}
+                  {activeAudit === 'audit-competitor' && <CompetitorAnalysisAudit />}
+                  {activeAudit === 'audit-social' && <SocialMediaAudit />}
+                  {activeAudit === 'audit-content' && <ContentAudit />}
+                  {activeAudit === 'audit-visual' && <VisualIdentityAudit />}
+                  {activeAudit === 'audit-legal' && <LegalComplianceAudit />}
+                  {activeAudit === 'audit-digital' && <DigitalAssetAudit />}
+                  {activeAudit === 'audit-employee' && <EmployeeBrandAudit />}
+                  {activeAudit === 'audit-customer' && <CustomerExperienceAudit />}
+                  
+                  {/* Back to audits button */}
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveAudit("audits")}
+                    className="mb-4"
+                  >
+                    ← Back to Audit Selection
+                  </Button>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Audit Type Selection */}
+                  <div className="lg:col-span-1">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Audit Types</CardTitle>
+                        <CardDescription>Select an audit to view details</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="space-y-1">
+                          {auditTypes.map((audit) => {
+                            const Icon = audit.icon;
+                            return (
+                              <button
+                                key={audit.id}
+                                onClick={() => {
+                                  console.log("Selecting audit from sidebar:", audit.id);
+                                  executeAudit(audit.id);
+                                }}
+                                className={`w-full text-left p-4 hover:bg-muted/50 transition-colors border-b last:border-b-0 ${
+                                  activeAudit === `audit-${audit.id}` ? 'bg-primary/10 border-primary/20' : ''
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <Icon className="w-5 h-5 text-primary" />
+                                    <div>
+                                      <div className="font-medium">{audit.name}</div>
+                                      <div className="text-sm text-muted-foreground">{audit.lastRun}</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className={`text-lg font-bold ${getStatusColor(audit.status)}`}>
+                                      {audit.score}%
+                                    </div>
+                                    {audit.issues > 0 && (
+                                      <Badge variant="destructive" className="text-xs">
+                                        {audit.issues}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Audit Instructions */}
+                  <div className="lg:col-span-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Select an Audit Type</CardTitle>
+                        <CardDescription>
+                          Choose an audit from the left or run a comprehensive analysis
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center py-8">
+                          <Monitor className="w-16 h-16 mx-auto mb-4 text-primary opacity-50" />
+                          <h3 className="text-lg font-semibold mb-2">Ready to Audit Your Brand</h3>
+                          <p className="text-muted-foreground mb-6">
+                            Select a specific audit type from the left panel to view detailed analysis,
+                            or run a full comprehensive audit of all brand elements.
+                          </p>
+                          <Button 
+                            variant="hero" 
+                            size="lg"
+                            onClick={() => {
+                              console.log("Running full audit");
+                              // Run all audits sequentially
+                              auditTypes.forEach((audit, index) => {
+                                setTimeout(() => {
+                                  console.log("Running audit:", audit.id);
+                                  executeAudit(audit.id);
+                                }, index * 3000); // 3 second intervals
+                              });
+                            }}
+                          >
+                            <Play className="w-5 h-5 mr-2" />
+                            Run Full Brand Audit
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              )}
             </TabsContent>
 
             {/* Individual Audit Content - These are now handled in the audits tab */}
