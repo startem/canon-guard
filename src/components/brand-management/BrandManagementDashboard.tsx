@@ -19,7 +19,8 @@ import {
   FileText,
   Globe,
   Smartphone,
-  Heart
+  Heart,
+  RefreshCw
 } from "lucide-react";
 import { BrandAuditOverview } from "./BrandAuditOverview";
 import { BrandConsistencyAudit } from "./audits/BrandConsistencyAudit";
@@ -37,6 +38,18 @@ import { BrandReporting } from "./BrandReporting";
 
 export const BrandManagementDashboard = () => {
   const [activeAudit, setActiveAudit] = useState("overview");
+  const [isRunningAudit, setIsRunningAudit] = useState<string | null>(null);
+
+  const executeAudit = (auditId: string) => {
+    setIsRunningAudit(auditId);
+    setActiveAudit(`audit-${auditId}`);
+    
+    // Simulate audit execution
+    setTimeout(() => {
+      setIsRunningAudit(null);
+      // Update audit data here in real implementation
+    }, 2000);
+  };
 
   const brandHealthScore = 87;
   const totalIssues = 23;
@@ -258,7 +271,7 @@ export const BrandManagementDashboard = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              <BrandAuditOverview auditTypes={auditTypes} />
+              <BrandAuditOverview auditTypes={auditTypes} executeAudit={executeAudit} />
             </TabsContent>
 
             <TabsContent value="audits" className="space-y-6">
@@ -311,35 +324,54 @@ export const BrandManagementDashboard = () => {
 
                 {/* Audit Details */}
                 <div className="lg:col-span-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Audit Details</CardTitle>
-                      <CardDescription>
-                        Select an audit type from the left to view detailed analysis
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Monitor className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Choose an audit type to view comprehensive analysis and insights</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {activeAudit === 'audits' ? (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Audit Details</CardTitle>
+                        <CardDescription>
+                          Select an audit type from the left to view detailed analysis
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Monitor className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>Choose an audit type to view comprehensive analysis and insights</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-6">
+                      {isRunningAudit && (
+                        <Card className="bg-primary/5 border-primary/20">
+                          <CardContent className="p-6">
+                            <div className="flex items-center gap-3">
+                              <RefreshCw className="w-5 h-5 animate-spin text-primary" />
+                              <div>
+                                <div className="font-medium">Running {auditTypes.find(a => a.id === isRunningAudit)?.name} Audit...</div>
+                                <div className="text-sm text-muted-foreground">Analyzing brand assets and compliance</div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                      {/* Show the appropriate audit component based on activeAudit */}
+                      {activeAudit === 'audit-consistency' && <BrandConsistencyAudit />}
+                      {activeAudit === 'audit-perception' && <BrandPerceptionAudit />}
+                      {activeAudit === 'audit-competitor' && <CompetitorAnalysisAudit />}
+                      {activeAudit === 'audit-social' && <SocialMediaAudit />}
+                      {activeAudit === 'audit-content' && <ContentAudit />}
+                      {activeAudit === 'audit-visual' && <VisualIdentityAudit />}
+                      {activeAudit === 'audit-legal' && <LegalComplianceAudit />}
+                      {activeAudit === 'audit-digital' && <DigitalAssetAudit />}
+                      {activeAudit === 'audit-employee' && <EmployeeBrandAudit />}
+                      {activeAudit === 'audit-customer' && <CustomerExperienceAudit />}
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
 
-            {/* Individual Audit Content */}
-            <TabsContent value="audit-consistency"><BrandConsistencyAudit /></TabsContent>
-            <TabsContent value="audit-perception"><BrandPerceptionAudit /></TabsContent>
-            <TabsContent value="audit-competitor"><CompetitorAnalysisAudit /></TabsContent>
-            <TabsContent value="audit-social"><SocialMediaAudit /></TabsContent>
-            <TabsContent value="audit-content"><ContentAudit /></TabsContent>
-            <TabsContent value="audit-visual"><VisualIdentityAudit /></TabsContent>
-            <TabsContent value="audit-legal"><LegalComplianceAudit /></TabsContent>
-            <TabsContent value="audit-digital"><DigitalAssetAudit /></TabsContent>
-            <TabsContent value="audit-employee"><EmployeeBrandAudit /></TabsContent>
-            <TabsContent value="audit-customer"><CustomerExperienceAudit /></TabsContent>
+            {/* Individual Audit Content - These are now handled in the audits tab */}
 
             <TabsContent value="issues" className="space-y-6">
               <IssueManagement />

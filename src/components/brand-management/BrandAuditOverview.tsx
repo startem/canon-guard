@@ -26,9 +26,10 @@ interface AuditType {
 
 interface BrandAuditOverviewProps {
   auditTypes: AuditType[];
+  executeAudit: (auditId: string) => void;
 }
 
-export const BrandAuditOverview = ({ auditTypes }: BrandAuditOverviewProps) => {
+export const BrandAuditOverview = ({ auditTypes, executeAudit }: BrandAuditOverviewProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "excellent": return "text-success";
@@ -185,7 +186,7 @@ export const BrandAuditOverview = ({ auditTypes }: BrandAuditOverviewProps) => {
                     variant="outline" 
                     size="sm" 
                     className="w-full"
-                    onClick={() => window.location.hash = `audit-${audit.id}`}
+                    onClick={() => executeAudit(audit.id)}
                   >
                     <Play className="w-3 h-3 mr-2" />
                     Run Audit
@@ -207,7 +208,12 @@ export const BrandAuditOverview = ({ auditTypes }: BrandAuditOverviewProps) => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="hero">
+            <Button variant="hero" onClick={() => {
+              // Run all audits sequentially
+              auditTypes.forEach((audit, index) => {
+                setTimeout(() => executeAudit(audit.id), index * 500);
+              });
+            }}>
               <Play className="w-4 h-4 mr-2" />
               Run All Audits
             </Button>
