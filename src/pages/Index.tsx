@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { BrandManagementDashboard } from "@/components/brand-management/BrandManagementDashboard";
+import { BrandCanonDashboard } from "@/components/brand-canon/BrandCanonDashboard";
+import { BrandProvider } from "@/hooks/useBrandContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Monitor } from "lucide-react";
 
@@ -29,10 +31,9 @@ const Index = () => {
         </TabsContent>
         
         <TabsContent value="canon" className="m-0">
-          <div className="p-8">
-            <h2 className="text-2xl font-bold">Brand Canon Dashboard</h2>
-            <p className="text-muted-foreground">Coming soon...</p>
-          </div>
+          <BrandProvider>
+            <BrandCanonDashboard />
+          </BrandProvider>
         </TabsContent>
       </Tabs>
     </div>
