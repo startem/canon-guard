@@ -12,6 +12,9 @@ import IngestBaseline from "./pages/IngestBaseline";
 import PositioningMessaging from "./pages/PositioningMessaging";
 import PersonalityStory from "./pages/PersonalityStory";
 import IdentityDesigner from "./pages/IdentityDesigner";
+import { ExperienceOperations } from "./pages/ExperienceOperations";
+import { VisibilityGrowth } from "./pages/VisibilityGrowth";
+import { GovernanceAlerts } from "./pages/GovernanceAlerts";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +33,9 @@ const App = () => (
             <Route path="/positioning-messaging" element={<PositioningMessaging />} />
             <Route path="/personality-story" element={<PersonalityStory />} />
             <Route path="/identity-designer" element={<IdentityDesigner />} />
+            <Route path="/experience-operations" element={<ExperienceOperations />} />
+            <Route path="/visibility-growth" element={<VisibilityGrowth />} />
+            <Route path="/governance-alerts" element={<GovernanceAlerts />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
