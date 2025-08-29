@@ -4,7 +4,7 @@ import { BrandCanonDashboard } from "@/components/brand-canon/BrandCanonDashboar
 import { BrandProvider } from "@/hooks/useBrandContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Building2, Monitor, Settings } from "lucide-react";
+import { Building2, Monitor, Settings, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -28,14 +28,24 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
               
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/onboarding")}
-                className="flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                Setup Wizard
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/onboarding")}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  Setup Wizard
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/strategy-builder")}
+                  className="flex items-center gap-2 border-primary text-primary hover:bg-primary/10"
+                >
+                  <Target className="w-4 h-4" />
+                  Strategy Builder
+                </Button>
+              </div>
             </div>
           </div>
         </div>
