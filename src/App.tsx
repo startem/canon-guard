@@ -9,6 +9,9 @@ import NotFound from "./pages/NotFound";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import BrandStrategyBuilder from "./pages/BrandStrategyBuilder";
 import IngestBaseline from "./pages/IngestBaseline";
+import PositioningMessaging from "./pages/PositioningMessaging";
+import PersonalityStory from "./pages/PersonalityStory";
+import IdentityDesigner from "./pages/IdentityDesigner";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +27,9 @@ const App = () => (
             <Route path="/onboarding" element={<OnboardingWizard />} />
             <Route path="/strategy-builder" element={<BrandStrategyBuilder />} />
             <Route path="/ingest-baseline" element={<IngestBaseline />} />
+            <Route path="/positioning-messaging" element={<PositioningMessaging />} />
+            <Route path="/personality-story" element={<PersonalityStory />} />
+            <Route path="/identity-designer" element={<IdentityDesigner />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
