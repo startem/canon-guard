@@ -1,8 +1,8 @@
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background p-8">
-      <h1 className="text-3xl font-bold text-primary">BrandStrategy Platform</h1>
-      <p className="text-muted-foreground mt-4">Application is loading successfully!</p>
+    <div style={{ padding: '20px', fontSize: '24px', color: 'black' }}>
+      <h1>Hello World - App is loading!</h1>
+      <p>If you see this, the React app is working.</p>
     </div>
   );
 };
