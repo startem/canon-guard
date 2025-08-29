@@ -3,25 +3,40 @@ import { BrandManagementDashboard } from "@/components/brand-management/BrandMan
 import { BrandCanonDashboard } from "@/components/brand-canon/BrandCanonDashboard";
 import { BrandProvider } from "@/hooks/useBrandContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Monitor } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Building2, Monitor, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       <Tabs defaultValue="management" className="w-full">
         {/* Navigation Header */}
         <div className="border-b border-border bg-gradient-card sticky top-0 z-50">
           <div className="container mx-auto px-6 py-4">
-            <TabsList className="w-full grid grid-cols-2 lg:flex lg:w-auto bg-gradient-card">
-              <TabsTrigger value="management" className="flex items-center gap-2 min-w-[200px]">
-                <Monitor className="w-4 h-4" />
-                <span>Brand Management Hub</span>
-              </TabsTrigger>
-              <TabsTrigger value="canon" className="flex items-center gap-2 min-w-[200px]">
-                <Building2 className="w-4 h-4" />
-                <span>Brand Canon</span>
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex items-center justify-between">
+              <TabsList className="grid grid-cols-2 lg:flex lg:w-auto bg-gradient-card">
+                <TabsTrigger value="management" className="flex items-center gap-2 min-w-[200px]">
+                  <Monitor className="w-4 h-4" />
+                  <span>Brand Management Hub</span>
+                </TabsTrigger>
+                <TabsTrigger value="canon" className="flex items-center gap-2 min-w-[200px]">
+                  <Building2 className="w-4 h-4" />
+                  <span>Brand Canon</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/onboarding")}
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Setup Wizard
+              </Button>
+            </div>
           </div>
         </div>
 
