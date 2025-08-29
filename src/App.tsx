@@ -3,10 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import BrandStrategyBuilder from "./pages/BrandStrategyBuilder";
+import IngestBaseline from "./pages/IngestBaseline";
 
 const queryClient = new QueryClient();
 
@@ -16,13 +18,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/onboarding" element={<OnboardingWizard />} />
-          <Route path="/strategy-builder" element={<BrandStrategyBuilder />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/onboarding" element={<OnboardingWizard />} />
+            <Route path="/strategy-builder" element={<BrandStrategyBuilder />} />
+            <Route path="/ingest-baseline" element={<IngestBaseline />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
