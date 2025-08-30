@@ -15,6 +15,10 @@ import IdentityDesigner from "./pages/IdentityDesigner";
 import { ExperienceOperations } from "./pages/ExperienceOperations";
 import { VisibilityGrowth } from "./pages/VisibilityGrowth";
 import { GovernanceAlerts } from "./pages/GovernanceAlerts";
+import AuditDetails from "./pages/AuditDetails";
+import IssueDetail from "./pages/IssueDetail";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import NotificationsAlerts from "./pages/NotificationsAlerts";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +40,10 @@ const App = () => (
             <Route path="/experience-operations" element={<ExperienceOperations />} />
             <Route path="/visibility-growth" element={<VisibilityGrowth />} />
             <Route path="/governance-alerts" element={<GovernanceAlerts />} />
+            <Route path="/audit-details/:category" element={<AuditDetails />} />
+            <Route path="/issue-detail/:issueId" element={<IssueDetail />} />
+            <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
+            <Route path="/notifications-alerts" element={<NotificationsAlerts />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
