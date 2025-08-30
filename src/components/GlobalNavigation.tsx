@@ -88,31 +88,25 @@ const navigationItems = [
   },
   { 
     title: "Audit Details", 
-    url: "/audit-details", 
+    url: "/audit-details/visual-identity", 
     icon: Search,
     group: "Analysis"
   },
   { 
-    title: "Issues", 
-    url: "/issues", 
+    title: "Issue Detail", 
+    url: "/issue-detail/1", 
     icon: ClipboardList,
     group: "Analysis"
   },
   { 
-    title: "Reports", 
-    url: "/reports", 
-    icon: FileText,
-    group: "Analytics"
-  },
-  { 
     title: "Analytics Dashboard", 
-    url: "/analytics", 
+    url: "/analytics-dashboard", 
     icon: BarChart3,
     group: "Analytics"
   },
   { 
-    title: "Notifications", 
-    url: "/notifications", 
+    title: "Notifications & Alerts", 
+    url: "/notifications-alerts", 
     icon: Bell,
     group: "Management"
   },
