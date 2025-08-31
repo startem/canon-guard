@@ -389,10 +389,8 @@ export default function NotificationsAlerts() {
                     </Button>
 
                     <Select onValueChange={(duration) => handleSnooze(notification.id, duration)}>
-                      <SelectTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Clock className="h-4 w-4" />
-                        </Button>
+                      <SelectTrigger className="w-8 h-8 p-0 border-none bg-transparent hover:bg-accent">
+                        <Clock className="h-4 w-4" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="1h">Snooze 1 hour</SelectItem>
