@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { StrategyProgress } from "@/components/StrategyProgress";
 import { 
   MessageSquare, 
   Sparkles, 
@@ -35,6 +37,7 @@ const PositioningMessaging = () => {
   ]);
   
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const generatePositioning = () => {
     const suggestions = [
@@ -106,10 +109,14 @@ const PositioningMessaging = () => {
       title: "Changes Saved",
       description: "Your positioning and messaging have been updated successfully.",
     });
+    // Navigate to next step in workflow
+    navigate("/personality-story");
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div>
+      <StrategyProgress />
+      <div className="container mx-auto py-8">
       <div className="space-y-2 mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Positioning & Messaging
@@ -432,6 +439,7 @@ const PositioningMessaging = () => {
           </Button>
         </div>
       </div>
+    </div>
     </div>
   );
 };
