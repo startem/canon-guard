@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit, Globe, Smartphone, Headphones, Package, Calendar, Mail, Store, MessageCircle } from "lucide-react";
+import { TouchpointDetailModal } from "@/components/TouchpointDetailModal";
+import { Plus, Edit, Eye, Globe, Smartphone, Headphones, Package, Calendar, Mail, Store, MessageCircle, Check, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Touchpoint {
@@ -86,7 +87,9 @@ const statusConfig = {
 export function ExperienceOperations() {
   const [touchpoints, setTouchpoints] = useState<Touchpoint[]>(initialTouchpoints);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingTouchpoint, setEditingTouchpoint] = useState<Touchpoint | null>(null);
+  const [selectedTouchpoint, setSelectedTouchpoint] = useState<Touchpoint | null>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -147,6 +150,33 @@ export function ExperienceOperations() {
     setIsDialogOpen(true);
   };
 
+  const handleViewDetails = (touchpoint: Touchpoint) => {
+    setSelectedTouchpoint(touchpoint);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleBulkMarkCompliant = () => {
+    setTouchpoints(prev => prev.map(tp => ({ ...tp, status: "compliant" as const })));
+    toast({
+      title: "Bulk Update Complete",
+      description: "All touchpoints have been marked as compliant.",
+    });
+  };
+
+  const handleBulkComplete = () => {
+    setTouchpoints(prev => prev.map(tp => ({ 
+      ...tp, 
+      status: "compliant" as const,
+      idealExperience: tp.idealExperience || "Experience requirements completed",
+      brandLanguage: tp.brandLanguage || "Brand language guidelines implemented", 
+      operationalRequirements: tp.operationalRequirements || "Operational requirements fulfilled"
+    })));
+    toast({
+      title: "All Touchpoints Completed",
+      description: "All touchpoint requirements have been marked as complete.",
+    });
+  };
+
   return (
     <Layout>
       <div className="p-6 space-y-6">
@@ -158,7 +188,16 @@ export function ExperienceOperations() {
             </p>
           </div>
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={handleBulkMarkCompliant}>
+              <Check className="h-4 w-4 mr-2" />
+              Mark All Compliant
+            </Button>
+            <Button variant="outline" onClick={handleBulkComplete}>
+              <Target className="h-4 w-4 mr-2" />
+              Complete All Touchpoints
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleAddNew} className="bg-primary hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
@@ -240,7 +279,8 @@ export function ExperienceOperations() {
                 </Button>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -262,6 +302,13 @@ export function ExperienceOperations() {
                       >
                         {statusInfo.text}
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewDetails(touchpoint)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -305,6 +352,21 @@ export function ExperienceOperations() {
             );
           })}
         </div>
+
+        {/* Touchpoint Detail Modal */}
+        {selectedTouchpoint && (
+          <TouchpointDetailModal
+            touchpoint={selectedTouchpoint}
+            isOpen={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            onSave={(updatedData) => {
+              setTouchpoints(prev => prev.map(tp => 
+                tp.id === selectedTouchpoint.id ? { ...tp, ...updatedData } : tp
+              ));
+              setSelectedTouchpoint(null);
+            }}
+          />
+        )}
       </div>
     </Layout>
   );
