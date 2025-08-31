@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Lightbulb, Plus, Edit3, Save, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { StrategyProgress } from '@/components/StrategyProgress';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ interface StrategyPillar {
 
 const BrandStrategyBuilder: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [strategy, setStrategy] = useState({
     purpose: '',
@@ -97,6 +99,8 @@ const BrandStrategyBuilder: React.FC = () => {
       title: "Strategy Saved",
       description: "Your brand strategy has been successfully updated.",
     });
+    // Navigate to next step
+    navigate("/positioning-messaging");
   };
 
   const useSuggestion = (field: keyof typeof strategy, suggestion: string) => {
@@ -116,8 +120,10 @@ const BrandStrategyBuilder: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div>
+      <StrategyProgress />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -380,6 +386,7 @@ const BrandStrategyBuilder: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

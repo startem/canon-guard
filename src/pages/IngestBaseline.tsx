@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 import { Scan, FileText, Image, Globe, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ScanStats {
@@ -298,13 +299,15 @@ const IngestBaseline = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button
-                size="lg"
-                className="bg-gradient-primary hover:shadow-glow hover:scale-105 transition-glow font-semibold flex-1"
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                View Baseline Report
-              </Button>
+              <Link to="/baseline-report" className="flex-1">
+                <Button
+                  size="lg"
+                  className="bg-gradient-primary hover:shadow-glow hover:scale-105 transition-glow font-semibold w-full"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  View Baseline Report
+                </Button>
+              </Link>
               
               <Button
                 variant="outline"
