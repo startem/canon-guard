@@ -14,7 +14,8 @@ import {
   Plus,
   Settings,
   History,
-  Users
+  Users,
+  Archive
 } from "lucide-react";
 import { BrandHierarchy } from "./BrandHierarchy";
 import { ColorTokens } from "./ColorTokens";
@@ -22,17 +23,26 @@ import { MessagingPillars } from "./MessagingPillars";
 import { BoilerplateManager } from "./BoilerplateManager";
 import { LegalCompliance } from "./LegalCompliance";
 import { VersionHistory } from "./VersionHistory";
+import { BrandCanonRestore } from "./BrandCanonRestore";
 
 export const BrandCanonDashboard = () => {
   const [ingestionDialogOpen, setIngestionDialogOpen] = useState(false);
+  const [activeVersion, setActiveVersion] = useState("v2.1.0");
+  const [isDraft, setIsDraft] = useState(false);
 
   const handleIngestionComplete = (data: any) => {
     console.log("Brand ingestion completed:", data);
-    // Handle the ingested data here
     setIngestionDialogOpen(false);
   };
-  const [activeVersion, setActiveVersion] = useState("v2.1.0");
-  const [isDraft, setIsDraft] = useState(false);
+
+  const handleRestore = (version: any) => {
+    console.log("Restoring to version:", version);
+    setActiveVersion(version.version);
+  };
+
+  const handleCreateBackup = (description: string) => {
+    console.log("Creating backup:", description);
+  };
 
   const stats = {
     brands: 3,
@@ -106,7 +116,7 @@ export const BrandCanonDashboard = () => {
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
         <Tabs defaultValue="hierarchy" className="space-y-8">
-          <TabsList className="w-full grid grid-cols-6 lg:flex lg:w-auto bg-gradient-card">
+          <TabsList className="w-full grid grid-cols-7 lg:flex lg:w-auto bg-gradient-card">
             <TabsTrigger value="hierarchy" className="flex items-center gap-2 min-w-[120px]">
               <Building2 className="w-4 h-4" />
               <span className="hidden sm:inline">Hierarchy</span>
@@ -130,6 +140,10 @@ export const BrandCanonDashboard = () => {
             <TabsTrigger value="versions" className="flex items-center gap-2 min-w-[120px]">
               <GitBranch className="w-4 h-4" />
               <span className="hidden sm:inline">Versions</span>
+            </TabsTrigger>
+            <TabsTrigger value="restore" className="flex items-center gap-2 min-w-[120px]">
+              <Archive className="w-4 h-4" />
+              <span className="hidden sm:inline">Restore</span>
             </TabsTrigger>
           </TabsList>
 
@@ -155,6 +169,14 @@ export const BrandCanonDashboard = () => {
 
           <TabsContent value="versions" className="space-y-6">
             <VersionHistory />
+          </TabsContent>
+
+          <TabsContent value="restore" className="space-y-6">
+            <BrandCanonRestore 
+              currentVersion={activeVersion}
+              onRestore={handleRestore}
+              onCreateBackup={handleCreateBackup}
+            />
           </TabsContent>
         </Tabs>
       </div>

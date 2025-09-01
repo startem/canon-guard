@@ -10,6 +10,8 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { InteractiveChart } from "@/components/InteractiveChart";
+import { CrossFlowLinks } from "@/components/CrossFlowLinks";
 
 const brandHealthData = [
   { month: "Jan", health: 78 },
@@ -178,75 +180,67 @@ export default function AnalyticsDashboard() {
           </Card>
         </div>
 
-        {/* Charts */}
+        {/* Interactive Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Brand Health Over Time */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Brand Health Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={brandHealthData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[0, 100]} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="health" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
-                      dot={{ fill: "hsl(var(--primary))" }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          {/* Brand Health Over Time - Interactive */}
+          <InteractiveChart
+            title="Brand Health Over Time"
+            description="Interactive brand health score tracking with contextual details"
+            data={brandHealthData.map(item => ({
+              timestamp: `2024-${item.month}-01`,
+              value: item.health,
+              metadata: {
+                category: "analytics",
+                source: "brand-health",
+                details: `Brand health score for ${item.month}`
+              }
+            }))}
+            type="line"
+            metric="Brand Health Score"
+            showTrend={true}
+            interactive={true}
+            crossFlowEnabled={true}
+          />
 
-          {/* Sentiment Analysis */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sentiment Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sentimentData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="positive" stackId="a" fill="hsl(142, 76%, 36%)" />
-                    <Bar dataKey="neutral" stackId="a" fill="hsl(47, 96%, 53%)" />
-                    <Bar dataKey="negative" stackId="a" fill="hsl(0, 84%, 60%)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          {/* Sentiment Analysis - Interactive */}
+          <InteractiveChart
+            title="Sentiment Analysis"
+            description="Weekly sentiment tracking with detailed breakdown"
+            data={sentimentData.map(item => ({
+              timestamp: `2024-01-${item.week.replace('Week ', '')}`,
+              value: item.positive,
+              metadata: {
+                category: "analytics", 
+                source: "sentiment",
+                details: `${item.positive}% positive, ${item.neutral}% neutral, ${item.negative}% negative`
+              }
+            }))}
+            type="bar"
+            metric="Positive Sentiment %"
+            showTrend={true}
+            interactive={true}
+            crossFlowEnabled={true}
+          />
 
-          {/* Compliance Rates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Audit Compliance Rates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={complianceData} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, 100]} />
-                    <YAxis dataKey="category" type="category" width={100} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="compliance" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          {/* Compliance Rates - Interactive */}
+          <InteractiveChart
+            title="Audit Compliance Rates"
+            description="Compliance tracking across different audit categories"
+            data={complianceData.map(item => ({
+              timestamp: "2024-01-15",
+              value: item.compliance,
+              metadata: {
+                category: "audit",
+                source: item.category.toLowerCase().replace(' ', '-'),
+                details: `${item.category} compliance rate`
+              }
+            }))}
+            type="bar"
+            metric="Compliance Rate %"
+            showTrend={false}
+            interactive={true}
+            crossFlowEnabled={true}
+          />
 
           {/* Issue Distribution */}
           <Card>
@@ -278,6 +272,43 @@ export default function AnalyticsDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Cross-Flow Links */}
+        <CrossFlowLinks
+          context="analytics"
+          relatedLinks={[
+            {
+              id: "audit-1",
+              title: "Brand Consistency Audit", 
+              description: "Recent compliance issues detected in digital assets",
+              targetRoute: "/audit-details/brand-consistency",
+              category: "audit",
+              priority: "high",
+              actionType: "analyze",
+              metadata: { count: 12, status: "active", lastUpdated: "2 hours ago" }
+            },
+            {
+              id: "issue-1",
+              title: "Logo Usage Violations",
+              description: "Multiple instances of incorrect logo usage found",
+              targetRoute: "/issue-detail/logo-violations", 
+              category: "issue",
+              priority: "medium",
+              actionType: "resolve",
+              metadata: { count: 8, status: "open", lastUpdated: "4 hours ago" }
+            },
+            {
+              id: "governance-1",
+              title: "Update Governance Rules",
+              description: "Configure automated monitoring for new compliance metrics",
+              targetRoute: "/governance-alerts",
+              category: "governance",
+              priority: "low",
+              actionType: "edit",
+              metadata: { lastUpdated: "1 day ago" }
+            }
+          ]}
+        />
 
         {/* Top Brand Mentions Table */}
         <Card>
