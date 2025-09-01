@@ -115,6 +115,12 @@ const navigationItems = [
     url: "/brand-canon", 
     icon: Archive,
     group: "Resources"
+  },
+  { 
+    title: "User Management", 
+    url: "/user-management", 
+    icon: Settings,
+    group: "Management"
   }
 ];
 

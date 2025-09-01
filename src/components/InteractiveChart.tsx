@@ -241,9 +241,11 @@ export const InteractiveChart = ({
         
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              {renderChart()}
-            </ResponsiveContainer>
+            <div style={{ width: '100%', height: '100%' }}>
+              <ResponsiveContainer>
+                {renderChart()}
+              </ResponsiveContainer>
+            </div>
           </ChartContainer>
         </CardContent>
       </Card>

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import UserManagementPage from "./pages/UserManagementPage";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import BrandStrategyBuilder from "./pages/BrandStrategyBuilder";
 import IngestBaseline from "./pages/IngestBaseline";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/notifications-alerts" element={<NotificationsAlerts />} />
             <Route path="/baseline-report" element={<BaselineReport />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/user-management" element={<UserManagementPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
