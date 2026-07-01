@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 export interface Brand {
   id: string;
@@ -143,7 +145,70 @@ interface BrandProviderProps {
   children: ReactNode;
 }
 
+// ---- DB <-> frontend mappers ----
+const toColorToken = (r: any): ColorToken => ({
+  id: r.id,
+  name: r.name,
+  description: r.description ?? '',
+  hex: r.hex,
+  rgb: r.rgb ?? '',
+  cmyk: r.cmyk ?? '',
+  usage: (r.usage as string[]) ?? [],
+  category: r.category,
+  accessibility: (r.accessibility as ColorToken['accessibility']) ?? { wcagAA: false, wcagAAA: false, contrastRatio: 0 },
+  brandId: r.client_id,
+});
+
+const toPillar = (r: any): MessagingPillar => ({
+  id: r.id,
+  name: r.name,
+  description: r.description ?? '',
+  definition: r.definition ?? '',
+  examples: (r.examples as string[]) ?? [],
+  keywords: (r.keywords as string[]) ?? [],
+  requiredCoverage: r.required_coverage ?? 0,
+  currentCoverage: r.current_coverage ?? 0,
+  assetTypes: (r.asset_types as string[]) ?? [],
+  priority: r.priority,
+  icon: r.icon ?? '',
+  brandId: r.client_id,
+});
+
+const toBoilerplate = (r: any): BoilerplateItem => ({
+  id: r.id,
+  name: r.name,
+  type: r.type ?? '',
+  content: r.content ?? '',
+  version: r.version ?? '1.0',
+  regions: (r.regions as string[]) ?? [],
+  audiences: (r.audiences as string[]) ?? [],
+  lastUpdated: r.updated_at ?? new Date().toISOString(),
+  approvalStatus: r.approval_status,
+  characterCount: (r.content ?? '').length,
+  usageGuidelines: r.usage_guidelines ?? '',
+  brandId: r.client_id,
+});
+
+const toLegal = (r: any): LegalItem => ({
+  id: r.id,
+  name: r.name,
+  type: r.type ?? '',
+  content: r.content ?? '',
+  regions: (r.regions as string[]) ?? [],
+  products: (r.products as string[]) ?? [],
+  mandatory: r.mandatory ?? false,
+  placement: (r.placement as string[]) ?? [],
+  expiryDate: r.expiry_date ?? undefined,
+  lastReviewed: r.updated_at ?? new Date().toISOString(),
+  approvalStatus: r.approval_status,
+  riskLevel: r.risk_level,
+  brandId: r.client_id,
+});
+
 export const BrandProvider = ({ children }: BrandProviderProps) => {
+  const { currentClient } = useWorkspace();
+  const clientId = currentClient?.id ?? null;
+
   const [brands, setBrands] = useState<Brand[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const [colorTokens, setColorTokens] = useState<ColorToken[]>([]);
@@ -151,85 +216,190 @@ export const BrandProvider = ({ children }: BrandProviderProps) => {
   const [boilerplateItems, setBoilerplateItems] = useState<BoilerplateItem[]>([]);
   const [legalItems, setLegalItems] = useState<LegalItem[]>([]);
 
-  // Brand operations
-  const addBrand = (brand: Brand) => {
-    setBrands(prev => [...prev, brand]);
-  };
+  // ---- loaders ----
+  const loadColors = useCallback(async () => {
+    if (!clientId) { setColorTokens([]); return; }
+    const { data } = await supabase.from('color_tokens').select('*').eq('client_id', clientId).order('created_at');
+    setColorTokens((data ?? []).map(toColorToken));
+  }, [clientId]);
 
-  const updateBrand = (brand: Brand) => {
-    setBrands(prev => prev.map(b => b.id === brand.id ? brand : b));
-  };
+  const loadPillars = useCallback(async () => {
+    if (!clientId) { setMessagingPillars([]); return; }
+    const { data } = await supabase.from('messaging_pillars').select('*').eq('client_id', clientId).order('created_at');
+    setMessagingPillars((data ?? []).map(toPillar));
+  }, [clientId]);
 
-  const deleteBrand = (brandId: string) => {
-    setBrands(prev => prev.filter(b => b.id !== brandId));
-    // Also clean up related items
-    setColorTokens(prev => prev.filter(item => item.brandId !== brandId));
-    setMessagingPillars(prev => prev.filter(item => item.brandId !== brandId));
-    setBoilerplateItems(prev => prev.filter(item => item.brandId !== brandId));
-    setLegalItems(prev => prev.filter(item => item.brandId !== brandId));
-  };
+  const loadBoilerplate = useCallback(async () => {
+    if (!clientId) { setBoilerplateItems([]); return; }
+    const { data } = await supabase.from('boilerplate_items').select('*').eq('client_id', clientId).order('created_at');
+    setBoilerplateItems((data ?? []).map(toBoilerplate));
+  }, [clientId]);
 
-  const setSelectedBrand = (brandId: string | null) => {
-    setSelectedBrandId(brandId);
-  };
+  const loadLegal = useCallback(async () => {
+    if (!clientId) { setLegalItems([]); return; }
+    const { data } = await supabase.from('legal_items').select('*').eq('client_id', clientId).order('created_at');
+    setLegalItems((data ?? []).map(toLegal));
+  }, [clientId]);
+
+  useEffect(() => {
+    loadColors();
+    loadPillars();
+    loadBoilerplate();
+    loadLegal();
+  }, [loadColors, loadPillars, loadBoilerplate, loadLegal]);
+
+  // Brand operations (in-memory grouping within a client)
+  const addBrand = (brand: Brand) => setBrands(prev => [...prev, brand]);
+  const updateBrand = (brand: Brand) => setBrands(prev => prev.map(b => b.id === brand.id ? brand : b));
+  const deleteBrand = (brandId: string) => setBrands(prev => prev.filter(b => b.id !== brandId));
+  const setSelectedBrand = (brandId: string | null) => setSelectedBrandId(brandId);
 
   // Color Token operations
-  const addColorToken = (token: ColorToken) => {
-    setColorTokens(prev => [...prev, { ...token, brandId: selectedBrandId || undefined }]);
+  const addColorToken = async (token: ColorToken) => {
+    if (!clientId) return;
+    await supabase.from('color_tokens').insert({
+      client_id: clientId,
+      name: token.name,
+      description: token.description,
+      hex: token.hex,
+      rgb: token.rgb,
+      cmyk: token.cmyk,
+      usage: token.usage,
+      category: token.category,
+      accessibility: token.accessibility,
+    });
+    await loadColors();
   };
-
-  const updateColorToken = (token: ColorToken) => {
-    setColorTokens(prev => prev.map(t => t.id === token.id ? token : t));
+  const updateColorToken = async (token: ColorToken) => {
+    await supabase.from('color_tokens').update({
+      name: token.name,
+      description: token.description,
+      hex: token.hex,
+      rgb: token.rgb,
+      cmyk: token.cmyk,
+      usage: token.usage,
+      category: token.category,
+      accessibility: token.accessibility,
+    }).eq('id', token.id);
+    await loadColors();
   };
-
-  const deleteColorToken = (tokenId: string) => {
-    setColorTokens(prev => prev.filter(t => t.id !== tokenId));
+  const deleteColorToken = async (tokenId: string) => {
+    await supabase.from('color_tokens').delete().eq('id', tokenId);
+    await loadColors();
   };
 
   // Messaging Pillar operations
-  const addMessagingPillar = (pillar: MessagingPillar) => {
-    setMessagingPillars(prev => [...prev, { ...pillar, brandId: selectedBrandId || undefined }]);
+  const addMessagingPillar = async (pillar: MessagingPillar) => {
+    if (!clientId) return;
+    await supabase.from('messaging_pillars').insert({
+      client_id: clientId,
+      name: pillar.name,
+      description: pillar.description,
+      definition: pillar.definition,
+      examples: pillar.examples,
+      keywords: pillar.keywords,
+      required_coverage: pillar.requiredCoverage,
+      current_coverage: pillar.currentCoverage,
+      asset_types: pillar.assetTypes,
+      priority: pillar.priority,
+      icon: pillar.icon,
+    });
+    await loadPillars();
   };
-
-  const updateMessagingPillar = (pillar: MessagingPillar) => {
-    setMessagingPillars(prev => prev.map(p => p.id === pillar.id ? pillar : p));
+  const updateMessagingPillar = async (pillar: MessagingPillar) => {
+    await supabase.from('messaging_pillars').update({
+      name: pillar.name,
+      description: pillar.description,
+      definition: pillar.definition,
+      examples: pillar.examples,
+      keywords: pillar.keywords,
+      required_coverage: pillar.requiredCoverage,
+      current_coverage: pillar.currentCoverage,
+      asset_types: pillar.assetTypes,
+      priority: pillar.priority,
+      icon: pillar.icon,
+    }).eq('id', pillar.id);
+    await loadPillars();
   };
-
-  const deleteMessagingPillar = (pillarId: string) => {
-    setMessagingPillars(prev => prev.filter(p => p.id !== pillarId));
+  const deleteMessagingPillar = async (pillarId: string) => {
+    await supabase.from('messaging_pillars').delete().eq('id', pillarId);
+    await loadPillars();
   };
 
   // Boilerplate operations
-  const addBoilerplateItem = (item: BoilerplateItem) => {
-    setBoilerplateItems(prev => [...prev, { ...item, brandId: selectedBrandId || undefined }]);
+  const addBoilerplateItem = async (item: BoilerplateItem) => {
+    if (!clientId) return;
+    await supabase.from('boilerplate_items').insert({
+      client_id: clientId,
+      name: item.name,
+      type: item.type,
+      content: item.content,
+      version: item.version,
+      regions: item.regions,
+      audiences: item.audiences,
+      approval_status: item.approvalStatus,
+      usage_guidelines: item.usageGuidelines,
+    });
+    await loadBoilerplate();
   };
-
-  const updateBoilerplateItem = (item: BoilerplateItem) => {
-    setBoilerplateItems(prev => prev.map(i => i.id === item.id ? item : i));
+  const updateBoilerplateItem = async (item: BoilerplateItem) => {
+    await supabase.from('boilerplate_items').update({
+      name: item.name,
+      type: item.type,
+      content: item.content,
+      version: item.version,
+      regions: item.regions,
+      audiences: item.audiences,
+      approval_status: item.approvalStatus,
+      usage_guidelines: item.usageGuidelines,
+    }).eq('id', item.id);
+    await loadBoilerplate();
   };
-
-  const deleteBoilerplateItem = (itemId: string) => {
-    setBoilerplateItems(prev => prev.filter(i => i.id !== itemId));
+  const deleteBoilerplateItem = async (itemId: string) => {
+    await supabase.from('boilerplate_items').delete().eq('id', itemId);
+    await loadBoilerplate();
   };
 
   // Legal operations
-  const addLegalItem = (item: LegalItem) => {
-    setLegalItems(prev => [...prev, { ...item, brandId: selectedBrandId || undefined }]);
+  const addLegalItem = async (item: LegalItem) => {
+    if (!clientId) return;
+    await supabase.from('legal_items').insert({
+      client_id: clientId,
+      name: item.name,
+      type: item.type,
+      content: item.content,
+      regions: item.regions,
+      products: item.products,
+      mandatory: item.mandatory,
+      placement: item.placement,
+      expiry_date: item.expiryDate || null,
+      approval_status: item.approvalStatus,
+      risk_level: item.riskLevel,
+    });
+    await loadLegal();
+  };
+  const updateLegalItem = async (item: LegalItem) => {
+    await supabase.from('legal_items').update({
+      name: item.name,
+      type: item.type,
+      content: item.content,
+      regions: item.regions,
+      products: item.products,
+      mandatory: item.mandatory,
+      placement: item.placement,
+      expiry_date: item.expiryDate || null,
+      approval_status: item.approvalStatus,
+      risk_level: item.riskLevel,
+    }).eq('id', item.id);
+    await loadLegal();
+  };
+  const deleteLegalItem = async (itemId: string) => {
+    await supabase.from('legal_items').delete().eq('id', itemId);
+    await loadLegal();
   };
 
-  const updateLegalItem = (item: LegalItem) => {
-    setLegalItems(prev => prev.map(i => i.id === item.id ? item : i));
-  };
-
-  const deleteLegalItem = (itemId: string) => {
-    setLegalItems(prev => prev.filter(i => i.id !== itemId));
-  };
-
-  // Filtering helper
-  const getItemsByBrand = <T extends { brandId?: string }>(items: T[], brandId?: string) => {
-    if (!brandId) return items;
-    return items.filter(item => item.brandId === brandId);
-  };
+  // Filtering helper — data is already scoped to the current client
+  const getItemsByBrand = <T extends { brandId?: string }>(items: T[], _brandId?: string) => items;
 
   const value: BrandContextType = {
     brands,

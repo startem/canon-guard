@@ -26,6 +26,7 @@ import IssueDetail from "./pages/IssueDetail";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import NotificationsAlerts from "./pages/NotificationsAlerts";
 import { BaselineReport } from "./pages/BaselineReport";
+import { BrandCanonDashboard } from "@/components/brand-canon/BrandCanonDashboard";
 
 const queryClient = new QueryClient();
 
@@ -62,7 +63,7 @@ const App = () => (
                         <Route path="/analytics" element={<AnalyticsDashboard />} />
                         <Route path="/notifications-alerts" element={<NotificationsAlerts />} />
                         <Route path="/baseline-report" element={<BaselineReport />} />
-                        <Route path="/brand-canon" element={<Index />} />
+                        <Route path="/brand-canon" element={<BrandCanonDashboard />} />
                         <Route path="/user-management" element={<UserManagementPage />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
