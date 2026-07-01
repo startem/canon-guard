@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BrandProvider } from "@/hooks/useBrandContext";
+import { BrandProvider, useBrandContext } from "@/hooks/useBrandContext";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { 
   Building2, 
   Palette, 
@@ -25,7 +26,9 @@ import { LegalCompliance } from "./LegalCompliance";
 import { VersionHistory } from "./VersionHistory";
 import { BrandCanonRestore } from "./BrandCanonRestore";
 
-export const BrandCanonDashboard = () => {
+const BrandCanonInner = () => {
+  const { currentClient } = useWorkspace();
+  const { brands, colorTokens, messagingPillars } = useBrandContext();
   const [ingestionDialogOpen, setIngestionDialogOpen] = useState(false);
   const [activeVersion, setActiveVersion] = useState("v2.1.0");
   const [isDraft, setIsDraft] = useState(false);
@@ -45,17 +48,16 @@ export const BrandCanonDashboard = () => {
   };
 
   const stats = {
-    brands: 3,
-    subBrands: 8,
-    pillars: 6,
-    colorTokens: 24,
-    lastUpdated: "2024-08-15",
-    approvalStatus: "Approved"
+    brands: brands.filter((b) => b.type === "main").length,
+    subBrands: brands.filter((b) => b.type === "sub").length,
+    pillars: messagingPillars.length,
+    colorTokens: colorTokens.length,
+    lastUpdated: new Date().toISOString().split("T")[0],
+    approvalStatus: currentClient ? "Active" : "No client",
   };
 
   return (
-    <BrandProvider>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-gradient-card">
         <div className="container mx-auto px-6 py-6">
@@ -67,7 +69,7 @@ export const BrandCanonDashboard = () => {
                   {stats.approvalStatus}
                 </Badge>
                 <Badge variant="outline">
-                  {activeVersion}
+                  {currentClient?.name ?? "No client selected"}
                 </Badge>
               </div>
               <p className="text-muted-foreground">
