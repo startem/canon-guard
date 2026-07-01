@@ -4,6 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import UserManagementPage from "./pages/UserManagementPage";
@@ -30,29 +35,44 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/onboarding" element={<OnboardingWizard />} />
-            <Route path="/strategy-builder" element={<BrandStrategyBuilder />} />
-            <Route path="/ingest-baseline" element={<IngestBaseline />} />
-            <Route path="/positioning-messaging" element={<PositioningMessaging />} />
-            <Route path="/personality-story" element={<PersonalityStory />} />
-            <Route path="/identity-designer" element={<IdentityDesigner />} />
-            <Route path="/experience-operations" element={<ExperienceOperations />} />
-            <Route path="/visibility-growth" element={<VisibilityGrowth />} />
-            <Route path="/governance-alerts" element={<GovernanceAlerts />} />
-            <Route path="/audit-details/:category" element={<AuditDetails />} />
-            <Route path="/issue-detail/:issueId" element={<IssueDetail />} />
-            <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
-            <Route path="/analytics" element={<AnalyticsDashboard />} />
-            <Route path="/notifications-alerts" element={<NotificationsAlerts />} />
-            <Route path="/baseline-report" element={<BaselineReport />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="/user-management" element={<UserManagementPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
+        <AuthProvider>
+          <WorkspaceProvider>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route
+                path="*"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/onboarding" element={<OnboardingWizard />} />
+                        <Route path="/strategy-builder" element={<BrandStrategyBuilder />} />
+                        <Route path="/ingest-baseline" element={<IngestBaseline />} />
+                        <Route path="/positioning-messaging" element={<PositioningMessaging />} />
+                        <Route path="/personality-story" element={<PersonalityStory />} />
+                        <Route path="/identity-designer" element={<IdentityDesigner />} />
+                        <Route path="/experience-operations" element={<ExperienceOperations />} />
+                        <Route path="/visibility-growth" element={<VisibilityGrowth />} />
+                        <Route path="/governance-alerts" element={<GovernanceAlerts />} />
+                        <Route path="/audit-details/:category" element={<AuditDetails />} />
+                        <Route path="/issue-detail/:issueId" element={<IssueDetail />} />
+                        <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
+                        <Route path="/analytics" element={<AnalyticsDashboard />} />
+                        <Route path="/notifications-alerts" element={<NotificationsAlerts />} />
+                        <Route path="/baseline-report" element={<BaselineReport />} />
+                        <Route path="/brand-canon" element={<Index />} />
+                        <Route path="/user-management" element={<UserManagementPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </WorkspaceProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
