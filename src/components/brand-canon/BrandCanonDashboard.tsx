@@ -183,6 +183,11 @@ const BrandCanonInner = () => {
         </Tabs>
       </div>
     </div>
-    </BrandProvider>
   );
 };
+
+export const BrandCanonDashboard = () => (
+  <BrandProvider>
+    <BrandCanonInner />
+  </BrandProvider>
+);
