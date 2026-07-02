@@ -102,7 +102,8 @@ export const useGovernance = () => {
     value: boolean
   ) => {
     setRoles((prev) => prev.map((x) => (x.id === id ? { ...x, [key]: value } : x)));
-    await supabase.from("approval_roles").update({ [key]: value }).eq("id", id);
+    const patch: Record<string, boolean> = { [key]: value };
+    await supabase.from("approval_roles").update(patch).eq("id", id);
   };
   const deleteRole = async (id: string) => {
     setRoles((prev) => prev.filter((x) => x.id !== id));
