@@ -1,192 +1,85 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { 
-  AlertTriangle, 
-  Info, 
-  CheckCircle, 
-  Bell, 
-  Clock, 
-  Settings, 
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  Bell,
   Eye,
-  Trash2
+  Trash2,
+  Check,
+  AlertOctagon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { useNotifications, NotificationSeverity } from "@/hooks/useNotifications";
 
-interface Notification {
-  id: string;
-  type: "warning" | "info" | "success";
-  category: "audit" | "issue" | "governance";
-  headline: string;
-  description: string;
-  timestamp: string;
-  isRead: boolean;
-  isSnoozed: boolean;
-  snoozeUntil?: string;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "warning",
-    category: "audit",
-    headline: "Brand Health Dropped Below Threshold",
-    description: "Overall brand health score decreased to 73%, falling below the 75% alert threshold.",
-    timestamp: "2024-01-16T10:30:00Z",
-    isRead: false,
-    isSnoozed: false
-  },
-  {
-    id: "2",
-    type: "info",
-    category: "issue",
-    headline: "New Brand Issue Detected",
-    description: "Logo placement issue found on homepage requiring immediate attention.",
-    timestamp: "2024-01-16T09:15:00Z",
-    isRead: false,
-    isSnoozed: false
-  },
-  {
-    id: "3",
-    type: "success",
-    category: "governance",
-    headline: "Approval Workflow Completed",
-    description: "Marketing campaign assets have been approved and are ready for deployment.",
-    timestamp: "2024-01-15T16:45:00Z",
-    isRead: true,
-    isSnoozed: false
-  },
-  {
-    id: "4",
-    type: "warning",
-    category: "audit",
-    headline: "Multiple Color Violations Detected",
-    description: "15 assets found using incorrect brand colors across digital properties.",
-    timestamp: "2024-01-15T14:20:00Z",
-    isRead: false,
-    isSnoozed: true,
-    snoozeUntil: "2024-01-17T09:00:00Z"
+const severityIcon = (severity: NotificationSeverity) => {
+  switch (severity) {
+    case "critical":
+      return <AlertOctagon className="h-5 w-5 text-red-600" />;
+    case "high":
+      return <AlertTriangle className="h-5 w-5 text-orange-600" />;
+    case "medium":
+      return <Info className="h-5 w-5 text-blue-600" />;
+    case "low":
+    default:
+      return <CheckCircle className="h-5 w-5 text-green-600" />;
   }
-];
+};
 
-interface NotificationSettings {
-  emailAlerts: boolean;
-  inAppAlerts: boolean;
-  auditAlerts: boolean;
-  issueAlerts: boolean;
-  governanceAlerts: boolean;
-}
+const severityBadge = (severity: NotificationSeverity): "destructive" | "secondary" | "outline" | "default" => {
+  switch (severity) {
+    case "critical":
+    case "high":
+      return "destructive";
+    case "medium":
+      return "secondary";
+    default:
+      return "outline";
+  }
+};
 
 export default function NotificationsAlerts() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { notifications, loading, markAsRead, markAllAsRead, remove } = useNotifications();
   const [severityFilter, setSeverityFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
-  const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState<NotificationSettings>({
-    emailAlerts: true,
-    inAppAlerts: true,
-    auditAlerts: true,
-    issueAlerts: true,
-    governanceAlerts: true
-  });
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "warning": return <AlertTriangle className="h-5 w-5 text-orange-600" />;
-      case "info": return <Info className="h-5 w-5 text-blue-600" />;
-      case "success": return <CheckCircle className="h-5 w-5 text-green-600" />;
-      default: return <Info className="h-5 w-5" />;
-    }
+  const handleMarkAsRead = async (id: string) => {
+    await markAsRead(id);
+    toast({ title: "Marked as read" });
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "warning": return "secondary";
-      case "info": return "outline";
-      case "success": return "default";
-      default: return "outline";
-    }
+  const handleDelete = async (id: string) => {
+    await remove(id);
+    toast({ title: "Notification deleted" });
   };
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(prev => prev.map(notif => 
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ));
-    toast({
-      title: "Marked as Read",
-      description: "Notification marked as read"
-    });
+  const handleMarkAll = async () => {
+    await markAllAsRead();
+    toast({ title: "All notifications marked as read" });
   };
 
-  const handleSnooze = (id: string, duration: string) => {
-    const snoozeUntil = new Date();
-    switch (duration) {
-      case "1h":
-        snoozeUntil.setHours(snoozeUntil.getHours() + 1);
-        break;
-      case "3h":
-        snoozeUntil.setHours(snoozeUntil.getHours() + 3);
-        break;
-      case "1d":
-        snoozeUntil.setDate(snoozeUntil.getDate() + 1);
-        break;
-    }
+  const categories = Array.from(new Set(notifications.map((n) => n.category))).filter(Boolean);
 
-    setNotifications(prev => prev.map(notif => 
-      notif.id === id ? { 
-        ...notif, 
-        isSnoozed: true, 
-        snoozeUntil: snoozeUntil.toISOString() 
-      } : notif
-    ));
-
-    toast({
-      title: "Notification Snoozed",
-      description: `Snoozed for ${duration}`
-    });
-  };
-
-  const handleDelete = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
-    toast({
-      title: "Notification Deleted",
-      description: "Notification has been removed"
-    });
-  };
-
-  const filteredNotifications = notifications.filter(notif => {
-    if (severityFilter !== "all" && notif.type !== severityFilter) return false;
-    if (categoryFilter !== "all" && notif.category !== categoryFilter) return false;
-    
+  const filtered = notifications.filter((n) => {
+    if (severityFilter !== "all" && n.severity !== severityFilter) return false;
+    if (categoryFilter !== "all" && n.category !== categoryFilter) return false;
     if (timeFilter !== "all") {
-      const notifDate = new Date(notif.timestamp);
-      const now = new Date();
-      const timeDiff = now.getTime() - notifDate.getTime();
-      
-      switch (timeFilter) {
-        case "24h":
-          if (timeDiff > 24 * 60 * 60 * 1000) return false;
-          break;
-        case "7d":
-          if (timeDiff > 7 * 24 * 60 * 60 * 1000) return false;
-          break;
-        case "30d":
-          if (timeDiff > 30 * 24 * 60 * 60 * 1000) return false;
-          break;
-      }
+      const diff = Date.now() - new Date(n.created_at).getTime();
+      if (timeFilter === "24h" && diff > 24 * 60 * 60 * 1000) return false;
+      if (timeFilter === "7d" && diff > 7 * 24 * 60 * 60 * 1000) return false;
+      if (timeFilter === "30d" && diff > 30 * 24 * 60 * 60 * 1000) return false;
     }
-    
     return true;
   });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -196,93 +89,14 @@ export default function NotificationsAlerts() {
           <div className="flex items-center gap-3">
             <Bell className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">Notifications & Alerts</h1>
-              <p className="text-muted-foreground">
-                {unreadCount} unread notifications
-              </p>
+              <h1 className="text-3xl font-bold">Notifications &amp; Alerts</h1>
+              <p className="text-muted-foreground">{unreadCount} unread notifications</p>
             </div>
           </div>
-
-          <Dialog open={showSettings} onOpenChange={setShowSettings}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Notification Settings</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-sm font-medium mb-4">Notification Delivery</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="email-alerts">Email Alerts</Label>
-                      <Switch
-                        id="email-alerts"
-                        checked={settings.emailAlerts}
-                        onCheckedChange={(checked) =>
-                          setSettings(prev => ({ ...prev, emailAlerts: checked }))
-                        }
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="in-app-alerts">In-App Alerts</Label>
-                      <Switch
-                        id="in-app-alerts"
-                        checked={settings.inAppAlerts}
-                        onCheckedChange={(checked) =>
-                          setSettings(prev => ({ ...prev, inAppAlerts: checked }))
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium mb-4">Alert Categories</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="audit-alerts">Audit Alerts</Label>
-                      <Switch
-                        id="audit-alerts"
-                        checked={settings.auditAlerts}
-                        onCheckedChange={(checked) =>
-                          setSettings(prev => ({ ...prev, auditAlerts: checked }))
-                        }
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="issue-alerts">Issue Alerts</Label>
-                      <Switch
-                        id="issue-alerts"
-                        checked={settings.issueAlerts}
-                        onCheckedChange={(checked) =>
-                          setSettings(prev => ({ ...prev, issueAlerts: checked }))
-                        }
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="governance-alerts">Governance Alerts</Label>
-                      <Switch
-                        id="governance-alerts"
-                        checked={settings.governanceAlerts}
-                        onCheckedChange={(checked) =>
-                          setSettings(prev => ({ ...prev, governanceAlerts: checked }))
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <Button className="w-full" onClick={() => setShowSettings(false)}>
-                  Save Settings
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" onClick={handleMarkAll} disabled={unreadCount === 0}>
+            <Check className="h-4 w-4 mr-2" />
+            Mark all read
+          </Button>
         </div>
 
         {/* Filters */}
@@ -290,39 +104,42 @@ export default function NotificationsAlerts() {
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <Label className="text-sm">Severity:</Label>
+                <span className="text-sm">Severity:</span>
                 <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                  <SelectTrigger className="w-[120px]">
+                  <SelectTrigger className="w-[130px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="warning">Warning</SelectItem>
-                    <SelectItem value="info">Info</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center gap-2">
-                <Label className="text-sm">Category:</Label>
+                <span className="text-sm">Category:</span>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-[120px]">
+                  <SelectTrigger className="w-[130px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="audit">Audit</SelectItem>
-                    <SelectItem value="issue">Issue</SelectItem>
-                    <SelectItem value="governance">Governance</SelectItem>
+                    {categories.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c.charAt(0).toUpperCase() + c.slice(1)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center gap-2">
-                <Label className="text-sm">Time:</Label>
+                <span className="text-sm">Time:</span>
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-[120px]">
+                  <SelectTrigger className="w-[130px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -337,88 +154,80 @@ export default function NotificationsAlerts() {
           </CardContent>
         </Card>
 
-        {/* Notifications List */}
+        {/* List */}
         <div className="space-y-4">
-          {filteredNotifications.map((notification) => (
-            <Card key={notification.id} className={`${notification.isRead ? 'opacity-60' : ''} ${notification.isSnoozed ? 'border-orange-200' : ''}`}>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    {getTypeIcon(notification.type)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-medium truncate">{notification.headline}</h3>
-                      <Badge variant={getTypeColor(notification.type)} className="text-xs">
-                        {notification.type}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {notification.category}
-                      </Badge>
-                      {notification.isSnoozed && (
-                        <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Snoozed
+          {loading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-2/3" />
+                        <Skeleton className="h-3 w-1/4" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          ) : (
+            filtered.map((n) => (
+              <Card key={n.id} className={n.read ? "opacity-60" : ""}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">{severityIcon(n.severity)}</div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium truncate">{n.title}</h3>
+                        <Badge variant={severityBadge(n.severity)} className="text-xs">
+                          {n.severity}
                         </Badge>
-                      )}
+                        {n.category && (
+                          <Badge variant="outline" className="text-xs">
+                            {n.category}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{n.message}</p>
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(n.created_at), "MMM d, yyyy 'at' h:mm a")}
+                      </div>
                     </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {notification.description}
-                    </p>
-                    
-                    <div className="text-xs text-muted-foreground">
-                      {format(new Date(notification.timestamp), "MMM d, yyyy 'at' h:mm a")}
-                      {notification.snoozeUntil && (
-                        <span className="ml-2">
-                          • Snoozed until {format(new Date(notification.snoozeUntil), "MMM d, h:mm a")}
-                        </span>
-                      )}
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMarkAsRead(n.id)}
+                        disabled={n.read}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(n.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
 
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleMarkAsRead(notification.id)}
-                      disabled={notification.isRead}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-
-                    <Select onValueChange={(duration) => handleSnooze(notification.id, duration)}>
-                      <SelectTrigger className="w-8 h-8 p-0 border-none bg-transparent hover:bg-accent">
-                        <Clock className="h-4 w-4" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1h">Snooze 1 hour</SelectItem>
-                        <SelectItem value="3h">Snooze 3 hours</SelectItem>
-                        <SelectItem value="1d">Snooze 1 day</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleDelete(notification.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {filteredNotifications.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <Card>
               <CardContent className="p-8 text-center">
                 <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No notifications found</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  {notifications.length === 0 ? "You're all caught up" : "No notifications match your filters"}
+                </h3>
                 <p className="text-muted-foreground">
-                  Try adjusting your filters or check back later for new alerts.
+                  {notifications.length === 0
+                    ? "New alerts from audits, issues, and governance will appear here."
+                    : "Try adjusting your filters above."}
                 </p>
               </CardContent>
             </Card>
