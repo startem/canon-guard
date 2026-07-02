@@ -73,6 +73,53 @@ export type Database = {
           },
         ]
       }
+      approval_roles: {
+        Row: {
+          assignee: string | null
+          client_id: string
+          created_at: string
+          id: string
+          priority: number
+          requires_legal: boolean
+          requires_messaging: boolean
+          requires_visuals: boolean
+          role_name: string
+          updated_at: string
+        }
+        Insert: {
+          assignee?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          priority?: number
+          requires_legal?: boolean
+          requires_messaging?: boolean
+          requires_visuals?: boolean
+          role_name: string
+          updated_at?: string
+        }
+        Update: {
+          assignee?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          priority?: number
+          requires_legal?: boolean
+          requires_messaging?: boolean
+          requires_visuals?: boolean
+          role_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_roles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_findings: {
         Row: {
           audit_id: string
@@ -113,6 +160,59 @@ export type Database = {
             columns: ["audit_id"]
             isOneToOne: false
             referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_schedules: {
+        Row: {
+          audit_type: string
+          client_id: string
+          created_at: string
+          day_of_month: number | null
+          day_of_week: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_run: string | null
+          next_run: string | null
+          time_of_day: string
+          updated_at: string
+        }
+        Insert: {
+          audit_type: string
+          client_id: string
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          next_run?: string | null
+          time_of_day?: string
+          updated_at?: string
+        }
+        Update: {
+          audit_type?: string
+          client_id?: string
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run?: string | null
+          next_run?: string | null
+          time_of_day?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_schedules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -313,6 +413,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "color_tokens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      governance_rules: {
+        Row: {
+          category: string
+          client_id: string
+          consequences: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          id: string
+          severity: Database["public"]["Enums"]["severity_level"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          client_id: string
+          consequences?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          severity?: Database["public"]["Enums"]["severity_level"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          consequences?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          severity?: Database["public"]["Enums"]["severity_level"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "governance_rules_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
