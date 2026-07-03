@@ -37,18 +37,22 @@ export function Layout({ children }: LayoutProps) {
         
         <main className="flex-1 flex flex-col">
           {/* Global Header */}
-          <header className="h-16 flex items-center justify-between border-b border-border bg-background px-6">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
+          <header className="sticky top-0 z-30 h-16 flex items-center justify-between border-b border-border/60 bg-background/80 backdrop-blur-md px-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+              <div className="h-6 w-px bg-border hidden sm:block" />
               <ClientSwitcher />
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground hidden md:inline">{currentAgency?.name}</span>
+              <div className="hidden md:flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1.5">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground max-w-[160px] truncate">{currentAgency?.name}</span>
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
+                    <Avatar className="h-8 w-8 ring-2 ring-primary/15">
+                      <AvatarFallback className="text-xs bg-gradient-primary text-primary-foreground font-semibold">{initials}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
