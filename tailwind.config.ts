@@ -80,12 +80,14 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-card': 'var(--gradient-card)',
-				'gradient-glow': 'var(--gradient-glow)'
+				'gradient-glow': 'var(--gradient-glow)',
+				'gradient-sidebar': 'var(--gradient-sidebar)'
 			},
 			boxShadow: {
 				'brand': 'var(--shadow-brand)',
 				'glow': 'var(--shadow-glow)',
-				'card': 'var(--shadow-card)'
+				'card': 'var(--shadow-card)',
+				'elevated': 'var(--shadow-elevated)'
 			},
 			transitionTimingFunction: {
 				'brand': 'var(--transition-brand)',
