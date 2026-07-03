@@ -72,16 +72,19 @@ export function GlobalNavigation() {
   };
 
   return (
-    <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
+    <Sidebar
+      className={`${isCollapsed ? "w-14" : "w-64"} border-r border-sidebar-border bg-gradient-sidebar`}
+      collapsible="icon"
+    >
       {/* Brand mark */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-4 border-b border-sidebar-border/70">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 shrink-0 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+          <div className="w-9 h-9 shrink-0 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow ring-1 ring-white/10">
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </div>
           {!isCollapsed && (
             <div className="leading-tight">
-              <h2 className="font-bold text-sidebar-foreground tracking-tight">BrandOps</h2>
+              <h2 className="font-display font-semibold text-base text-sidebar-foreground tracking-tight">BrandOps</h2>
               <p className="text-[11px] text-sidebar-foreground/55">Brand operations platform</p>
             </div>
           )}

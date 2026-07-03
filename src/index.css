@@ -47,37 +47,33 @@
     --ring: 240 65% 25%;
 
     /* Brand gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(240 65% 25%), hsl(260 50% 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(240 65% 25%) 0%, hsl(260 50% 45%) 50%, hsl(280 60% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(240 8% 98%) 100%);
-    --gradient-glow: radial-gradient(circle at center, hsl(240 80% 60% / 0.1) 0%, transparent 70%);
+    --gradient-primary: linear-gradient(135deg, hsl(240 65% 30%), hsl(265 55% 48%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 65% 25%) 0%, hsl(260 55% 42%) 50%, hsl(280 62% 55%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(240 20% 98.5%) 100%);
+    --gradient-glow: radial-gradient(circle at center, hsl(240 80% 60% / 0.12) 0%, transparent 70%);
+    --gradient-sidebar: linear-gradient(180deg, hsl(240 40% 13%) 0%, hsl(248 42% 10%) 100%);
 
     /* Brand shadows */
-    --shadow-brand: 0 8px 32px hsl(240 65% 25% / 0.12);
-    --shadow-glow: 0 0 40px hsl(240 80% 60% / 0.3);
-    --shadow-card: 0 4px 24px hsl(240 10% 15% / 0.08);
+    --shadow-brand: 0 8px 32px -8px hsl(240 65% 25% / 0.18);
+    --shadow-glow: 0 0 32px hsl(240 80% 60% / 0.35);
+    --shadow-card: 0 1px 2px hsl(240 10% 15% / 0.04), 0 8px 24px -12px hsl(240 30% 20% / 0.12);
+    --shadow-elevated: 0 4px 12px -4px hsl(240 20% 20% / 0.1), 0 16px 40px -16px hsl(240 40% 25% / 0.18);
 
     /* Animations */
     --transition-brand: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-glow: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar - deep branded navy rail */
+    --sidebar-background: 240 40% 12%;
+    --sidebar-foreground: 240 20% 82%;
+    --sidebar-primary: 240 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 32% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 28% 20%;
+    --sidebar-ring: 240 80% 60%;
   }
 
   .dark {
@@ -125,6 +121,12 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+    font-weight: 600;
   }
 }
