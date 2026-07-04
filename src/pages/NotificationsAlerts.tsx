@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,22 +85,20 @@ export default function NotificationsAlerts() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <PageShell maxWidth="5xl">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Bell className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold">Notifications &amp; Alerts</h1>
-              <p className="text-muted-foreground">{unreadCount} unread notifications</p>
-            </div>
-          </div>
-          <Button variant="outline" onClick={handleMarkAll} disabled={unreadCount === 0}>
-            <Check className="h-4 w-4 mr-2" />
-            Mark all read
-          </Button>
-        </div>
+        <PageHeader
+          icon={Bell}
+          eyebrow="Management"
+          title="Notifications & Alerts"
+          description={`${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`}
+          actions={
+            <Button variant="outline" onClick={handleMarkAll} disabled={unreadCount === 0}>
+              <Check className="h-4 w-4 mr-2" />
+              Mark all read
+            </Button>
+          }
+        />
 
         {/* Filters */}
         <Card>
@@ -218,22 +219,17 @@ export default function NotificationsAlerts() {
           )}
 
           {!loading && filtered.length === 0 && (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  {notifications.length === 0 ? "You're all caught up" : "No notifications match your filters"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {notifications.length === 0
-                    ? "New alerts from audits, issues, and governance will appear here."
-                    : "Try adjusting your filters above."}
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Bell}
+              title={notifications.length === 0 ? "You're all caught up" : "No notifications match your filters"}
+              description={
+                notifications.length === 0
+                  ? "New alerts from audits, issues, and governance will appear here."
+                  : "Try adjusting your filters above."
+              }
+            />
           )}
         </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }
