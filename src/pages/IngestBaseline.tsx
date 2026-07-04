@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -113,15 +115,13 @@ const IngestBaseline = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Ingest & Baseline
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Scan your existing brand assets and run a baseline audit to establish your current brand health metrics.
-        </p>
-      </div>
+    <PageShell className="space-y-8">
+      <PageHeader
+        icon={Scan}
+        eyebrow="Setup"
+        title="Ingest & Baseline"
+        description="Scan your existing brand assets and run a baseline audit to establish your current brand health metrics."
+      />
 
       {/* Primary Scan Card */}
       <Card className="shadow-card">
