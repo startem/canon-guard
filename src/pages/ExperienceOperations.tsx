@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Layout } from "@/components/Layout";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { TouchpointDetailModal } from "@/components/TouchpointDetailModal";
-import { Plus, Edit, Eye, Globe, Smartphone, Headphones, Package, Calendar, Mail, Store, MessageCircle, Check, Target } from "lucide-react";
+import { Plus, Edit, Eye, Globe, Smartphone, Headphones, Package, Calendar, Mail, Store, MessageCircle, Check, Target, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Touchpoint {
