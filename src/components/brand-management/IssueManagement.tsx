@@ -173,8 +173,15 @@ export const IssueManagement = () => {
       {/* Filters and Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Issue Management</CardTitle>
-          <CardDescription>Track and resolve brand compliance issues</CardDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Issue Management</CardTitle>
+              <CardDescription>Track and resolve brand compliance issues</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => setCreateOpen(true)} disabled={!clientId} className="gap-2 shrink-0">
+              <Plus className="w-4 h-4" /> New Issue
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
