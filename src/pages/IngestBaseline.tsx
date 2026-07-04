@@ -374,7 +374,7 @@ const IngestBaseline = () => {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageShell>
   );
 };
 
