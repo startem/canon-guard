@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -138,15 +140,13 @@ From our first client to our latest product launch, we've remained focused on on
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="space-y-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Brand Personality & Story
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Define your brand's character, voice, and narrative to create authentic connections
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        icon={User}
+        eyebrow="Strategy"
+        title="Brand Personality & Story"
+        description="Define your brand's character, voice, and narrative to create authentic connections."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -412,7 +412,7 @@ From our first client to our latest product launch, we've remained focused on on
           </Button>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 };
 

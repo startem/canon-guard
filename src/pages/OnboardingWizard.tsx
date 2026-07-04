@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowRight, ArrowLeft, Building2, Globe, Target, TrendingUp, CheckCircle, Upload, X } from "lucide-react";
+import { ArrowRight, ArrowLeft, Building2, Globe, Target, TrendingUp, CheckCircle, Upload, X, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
@@ -115,19 +117,20 @@ const OnboardingWizard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <PageShell maxWidth="5xl">
         {/* Progress Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Brand Onboarding</h1>
-              <p className="text-muted-foreground">Let's set up your brand management platform</p>
-            </div>
-            <Badge variant="secondary" className="text-sm">
-              Step {currentStep} of {totalSteps}
-            </Badge>
-          </div>
+        <div className="space-y-4">
+          <PageHeader
+            icon={Rocket}
+            eyebrow="Setup"
+            title="Brand Onboarding"
+            description="Let's set up your brand management platform."
+            meta={
+              <Badge variant="secondary" className="text-sm">
+                Step {currentStep} of {totalSteps}
+              </Badge>
+            }
+          />
           <Progress value={progress} className="w-full h-2" />
         </div>
 
@@ -167,8 +170,7 @@ const OnboardingWizard = () => {
             onBack={handleBack}
           />
         )}
-      </div>
-    </div>
+    </PageShell>
   );
 };
 

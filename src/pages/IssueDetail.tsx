@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Calendar as CalendarIcon, Paperclip, Send, AlertTriangle, User } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Paperclip, Send, AlertTriangle, User, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -137,32 +139,25 @@ export default function IssueDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <PageShell maxWidth="5xl">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Issues
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold">{issue.title}</h1>
-              <Badge variant={getPriorityColor(issue.priority)}>
-                {issue.priority} priority
-              </Badge>
-              <Badge variant={getStatusColor(issue.status)}>
-                {issue.status.replace('_', ' ')}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">Issue #{issue.id}</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={AlertCircle}
+          eyebrow={`Issue #${issue.id}`}
+          title={issue.title}
+          meta={
+            <>
+              <Badge variant={getPriorityColor(issue.priority)}>{issue.priority} priority</Badge>
+              <Badge variant={getStatusColor(issue.status)}>{issue.status.replace('_', ' ')}</Badge>
+            </>
+          }
+          actions={
+            <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Issues
+            </Button>
+          }
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -352,7 +347,6 @@ export default function IssueDetail() {
             </Card>
           </div>
         </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }

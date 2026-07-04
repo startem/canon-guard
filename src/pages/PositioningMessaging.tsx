@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -116,15 +118,13 @@ const PositioningMessaging = () => {
   return (
     <div>
       <StrategyProgress />
-      <div className="container mx-auto py-8">
-      <div className="space-y-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Positioning & Messaging
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Define your brand's market position and core messaging pillars
-        </p>
-      </div>
+      <PageShell>
+      <PageHeader
+        icon={MessageSquare}
+        eyebrow="Strategy"
+        title="Positioning & Messaging"
+        description="Define your brand's market position and core messaging pillars."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -439,7 +439,7 @@ const PositioningMessaging = () => {
           </Button>
         </div>
       </div>
-    </div>
+      </PageShell>
     </div>
   );
 };
