@@ -117,24 +117,20 @@ export default function AuditDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <PageShell>
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Audits
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{categoryName} Audit Details</h1>
-            <p className="text-muted-foreground">Detailed compliance analysis and issue management</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={ClipboardCheck}
+          eyebrow="Analysis"
+          title={`${categoryName} Audit Details`}
+          description="Detailed compliance analysis and issue management."
+          actions={
+            <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Audits
+            </Button>
+          }
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -307,7 +303,6 @@ export default function AuditDetails() {
             </Card>
           )}
         </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }
