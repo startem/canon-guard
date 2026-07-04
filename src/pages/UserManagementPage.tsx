@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UserManagement } from '@/components/UserManagement';
 import { DataPersistenceProvider } from '@/hooks/useDataPersistence';
+import { PageShell } from '@/components/layout/PageShell';
 
 // Mock data - in production this would come from your backend
 const initialUsers = [
@@ -125,7 +126,7 @@ const UserManagementPage = () => {
 
   return (
     <DataPersistenceProvider>
-      <div className="container mx-auto px-6 py-8">
+      <PageShell>
         <UserManagement
           users={users}
           teams={teams}
@@ -134,7 +135,7 @@ const UserManagementPage = () => {
           onTeamUpdate={handleTeamUpdate}
           onTeamDelete={handleTeamDelete}
         />
-      </div>
+      </PageShell>
     </DataPersistenceProvider>
   );
 };
