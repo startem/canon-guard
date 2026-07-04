@@ -308,6 +308,71 @@ export const IssueManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create issue</DialogTitle>
+            <DialogDescription>Log a brand compliance issue for this client.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ni-title">Title</Label>
+              <Input
+                id="ni-title"
+                value={newIssue.title}
+                onChange={(e) => setNewIssue({ ...newIssue, title: e.target.value })}
+                placeholder="e.g. Off-brand logo on landing page"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ni-desc">Description</Label>
+              <Textarea
+                id="ni-desc"
+                value={newIssue.description}
+                onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })}
+                placeholder="Describe the issue and where it appears…"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Severity</Label>
+                <Select
+                  value={newIssue.severity}
+                  onValueChange={(v: IssueSeverity) => setNewIssue({ ...newIssue, severity: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ni-cat">Category</Label>
+                <Input
+                  id="ni-cat"
+                  value={newIssue.category}
+                  onChange={(e) => setNewIssue({ ...newIssue, category: e.target.value })}
+                  placeholder="e.g. Visual Identity"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreate} disabled={saving || !newIssue.title.trim()}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Create issue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
