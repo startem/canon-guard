@@ -24,7 +24,7 @@ import {
   BarChart3,
   Bell,
   Archive,
-  ClipboardList,
+  Building2,
   Settings,
   Sparkles,
 } from "lucide-react";
