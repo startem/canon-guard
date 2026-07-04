@@ -433,7 +433,6 @@ export function VisibilityGrowth() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </Layout>
+    </PageShell>
   );
 }
