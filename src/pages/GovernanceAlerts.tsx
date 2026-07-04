@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield, Plus, Users, Bell, AlertTriangle, Info, XCircle, Trash2, AlertOctagon, ClipboardList } from "lucide-react";
+import { Shield, Plus, Users, Bell, AlertTriangle, Info, XCircle, Trash2, AlertOctagon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGovernance, Severity } from "@/hooks/useGovernance";
 
