@@ -1,352 +1,311 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Calendar as CalendarIcon, Paperclip, Send, AlertTriangle, User, AlertCircle } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, AlertCircle, Loader2, FileSearch } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useAgencyMembers } from "@/hooks/useAgencyMembers";
+import type { Issue, IssueSeverity, IssueStatus } from "@/hooks/useIssues";
 
-interface Comment {
-  id: string;
-  author: string;
-  avatar?: string;
-  content: string;
-  timestamp: string;
-}
-
-interface Issue {
-  id: string;
-  title: string;
-  description: string;
-  auditSource: string;
-  reportedBy: string;
-  dateDetected: string;
-  priority: "low" | "medium" | "high";
-  status: "open" | "in_progress" | "resolved";
-  assignee?: string;
-  dueDate?: Date;
-  relatedAssets: string[];
-  comments: Comment[];
-}
-
-const mockIssue: Issue = {
-  id: "ISS-001",
-  title: "Logo placement violates brand guidelines",
-  description: "The company logo on the homepage hero section does not maintain the required 20px margin from other elements, which violates our brand positioning guidelines.",
-  auditSource: "Visual Identity Audit",
-  reportedBy: "Brand Audit System",
-  dateDetected: "2024-01-15",
-  priority: "medium",
-  status: "open",
-  relatedAssets: ["homepage-hero.jpg", "mobile-hero.jpg", "tablet-hero.jpg"],
-  comments: [
-    {
-      id: "1",
-      author: "Sarah Wilson",
-      content: "I've reviewed the assets and confirmed the spacing issue. The logo needs to be repositioned to maintain proper brand guidelines.",
-      timestamp: "2024-01-16T10:30:00Z"
-    },
-    {
-      id: "2", 
-      author: "Mike Chen",
-      content: "Can we also check if this affects other marketing materials? Want to ensure consistency across all touchpoints.",
-      timestamp: "2024-01-16T14:15:00Z"
-    }
-  ]
+const severityBadge = (s: string) => {
+  switch (s) {
+    case "critical":
+    case "high":
+      return "bg-destructive/10 text-destructive border-destructive/20";
+    case "medium":
+      return "bg-warning/10 text-warning border-warning/20";
+    default:
+      return "bg-primary/10 text-primary border-primary/20";
+  }
 };
+
+const statusBadge = (s: string) => {
+  switch (s) {
+    case "open":
+      return "bg-destructive/10 text-destructive border-destructive/20";
+    case "in-progress":
+      return "bg-warning/10 text-warning border-warning/20";
+    case "resolved":
+      return "bg-success/10 text-success border-success/20";
+    default:
+      return "bg-muted/10 text-muted-foreground border-muted/20";
+  }
+};
+
+const UNASSIGNED = "__unassigned__";
 
 export default function IssueDetail() {
   const { issueId } = useParams<{ issueId: string }>();
   const navigate = useNavigate();
-  const [issue, setIssue] = useState<Issue>(mockIssue);
-  const [newComment, setNewComment] = useState("");
-  const [dueDate, setDueDate] = useState<Date>();
+  const { members } = useAgencyMembers();
+  const [issue, setIssue] = useState<Issue | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high": return "destructive";
-      case "medium": return "secondary";
-      case "low": return "outline";
-      default: return "outline";
+  const load = useCallback(async () => {
+    if (!issueId) return;
+    setLoading(true);
+    const { data, error } = await supabase.from("issues").select("*").eq("id", issueId).maybeSingle();
+    if (error || !data) {
+      setNotFound(true);
+    } else {
+      setIssue(data as Issue);
+    }
+    setLoading(false);
+  }, [issueId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const patch = async (fields: Partial<Issue>, message: string) => {
+    if (!issue) return;
+    setSaving(true);
+    setIssue((prev) => (prev ? { ...prev, ...fields } : prev));
+    const { error } = await supabase.from("issues").update(fields).eq("id", issue.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      load();
+    } else {
+      toast({ title: message });
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "resolved": return "default";
-      case "in_progress": return "secondary";
-      case "open": return "destructive";
-      default: return "outline";
-    }
-  };
+  const assigneeName = (id: string | null | undefined) =>
+    members.find((m) => m.user_id === id)?.full_name ?? null;
 
-  const handleStatusChange = (newStatus: "open" | "in_progress" | "resolved") => {
-    setIssue(prev => ({ ...prev, status: newStatus }));
-    toast({
-      title: "Status Updated",
-      description: `Issue status changed to ${newStatus.replace('_', ' ')}`
-    });
-  };
+  if (loading) {
+    return (
+      <PageShell maxWidth="5xl">
+        <Skeleton className="h-24 w-full mb-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-80 lg:col-span-2" />
+          <Skeleton className="h-80" />
+        </div>
+      </PageShell>
+    );
+  }
 
-  const handleAssigneeChange = (assignee: string) => {
-    setIssue(prev => ({ ...prev, assignee }));
-    toast({
-      title: "Issue Assigned",
-      description: `Issue assigned to ${assignee}`
-    });
-  };
-
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    
-    const comment: Comment = {
-      id: Date.now().toString(),
-      author: "Current User",
-      content: newComment,
-      timestamp: new Date().toISOString()
-    };
-
-    setIssue(prev => ({
-      ...prev,
-      comments: [...prev.comments, comment]
-    }));
-    setNewComment("");
-    toast({
-      title: "Comment Added",
-      description: "Your comment has been added to the issue"
-    });
-  };
-
-  const handleDueDateChange = (date: Date | undefined) => {
-    setDueDate(date);
-    setIssue(prev => ({ ...prev, dueDate: date }));
-    if (date) {
-      toast({
-        title: "Due Date Set",
-        description: `Due date set to ${format(date, "PPP")}`
-      });
-    }
-  };
-
-  return (
-    <PageShell maxWidth="5xl">
-        {/* Header */}
+  if (notFound || !issue) {
+    return (
+      <PageShell maxWidth="5xl">
         <PageHeader
           icon={AlertCircle}
-          eyebrow={`Issue #${issue.id}`}
-          title={issue.title}
-          meta={
-            <>
-              <Badge variant={getPriorityColor(issue.priority)}>{issue.priority} priority</Badge>
-              <Badge variant={getStatusColor(issue.status)}>{issue.status.replace('_', ' ')}</Badge>
-            </>
-          }
+          eyebrow="Issue"
+          title="Issue not found"
+          description="This issue may have been resolved and removed, or you don't have access to it."
           actions={
             <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Issues
+              <ArrowLeft className="h-4 w-4" /> Back
             </Button>
           }
         />
+      </PageShell>
+    );
+  }
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Issue Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Issue Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+  const dueDate = issue.due_date ? new Date(issue.due_date) : undefined;
+
+  return (
+    <PageShell maxWidth="5xl">
+      <PageHeader
+        icon={AlertCircle}
+        eyebrow={`Issue #${issue.id.slice(0, 8)}`}
+        title={issue.title}
+        meta={
+          <>
+            <Badge className={severityBadge(issue.severity)}>{issue.severity}</Badge>
+            <Badge className={statusBadge(issue.status)}>{issue.status.replace("-", " ")}</Badge>
+            {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          </>
+        }
+        actions={
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back to Issues
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Issue Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Description</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {issue.description || "No description provided."}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-sm text-muted-foreground">{issue.description}</p>
+                  <h4 className="font-medium mb-1">Category</h4>
+                  <p className="text-sm text-muted-foreground">{issue.category || "—"}</p>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-1">Audit Source</h4>
-                    <p className="text-sm text-muted-foreground">{issue.auditSource}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-1">Reported By</h4>
-                    <p className="text-sm text-muted-foreground">{issue.reportedBy}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-1">Date Detected</h4>
-                    <p className="text-sm text-muted-foreground">{issue.dateDetected}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-1">Priority</h4>
-                    <Badge variant={getPriorityColor(issue.priority)}>
-                      {issue.priority}
-                    </Badge>
-                  </div>
+                <div>
+                  <h4 className="font-medium mb-1">Detected</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(issue.created_at).toLocaleDateString()}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <h4 className="font-medium mb-1">Source</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {issue.audit_id ? "Automated AI audit" : "Manually created"}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1">Assignee</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {assigneeName(issue.assignee) ?? "Unassigned"}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Related Assets */}
+          {issue.audit_id && (
             <Card>
               <CardHeader>
-                <CardTitle>Related Assets</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileSearch className="h-4 w-4" /> Linked Audit
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {issue.relatedAssets.map((asset, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <span className="text-sm font-medium">{asset}</span>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  This issue was auto-generated from an AI brand audit finding.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/audit-details/${issue.category ?? "brand-consistency"}`)}
+                >
+                  View audit findings
+                </Button>
               </CardContent>
             </Card>
-
-            {/* Comments Thread */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Comments</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Existing Comments */}
-                <div className="space-y-4">
-                  {issue.comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={comment.avatar} />
-                        <AvatarFallback>
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium">{comment.author}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(comment.timestamp), "MMM d, h:mm a")}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{comment.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add Comment */}
-                <div className="border-t pt-4">
-                  <div className="flex gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <Textarea
-                        placeholder="Add a comment..."
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        className="mb-2"
-                      />
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" onClick={handleAddComment}>
-                          <Send className="h-4 w-4 mr-1" />
-                          Comment
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Paperclip className="h-4 w-4" />
-                          Attach
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar Controls */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Status</label>
-                  <Select value={issue.status} onValueChange={handleStatusChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Assignee</label>
-                  <Select value={issue.assignee || ""} onValueChange={handleAssigneeChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select assignee" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Sarah Wilson">Sarah Wilson</SelectItem>
-                      <SelectItem value="Mike Chen">Mike Chen</SelectItem>
-                      <SelectItem value="Emma Davis">Emma Davis</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Due Date</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !dueDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dueDate ? format(dueDate, "PPP") : "Set due date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dueDate}
-                        onSelect={handleDueDateChange}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <Button className="w-full mb-2">Save Changes</Button>
-                  <Button variant="outline" className="w-full">
-                    <Paperclip className="h-4 w-4 mr-2" />
-                    Attach File
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          )}
         </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Status</label>
+                <Select
+                  value={issue.status}
+                  onValueChange={(v: IssueStatus) =>
+                    patch({ status: v }, `Status changed to ${v.replace("-", " ")}`)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Severity</label>
+                <Select
+                  value={issue.severity}
+                  onValueChange={(v: IssueSeverity) => patch({ severity: v }, "Severity updated")}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Assignee</label>
+                <Select
+                  value={issue.assignee ?? UNASSIGNED}
+                  onValueChange={(v) => {
+                    const assignee = v === UNASSIGNED ? null : v;
+                    patch(
+                      { assignee },
+                      assignee ? `Assigned to ${assigneeName(assignee)}` : "Unassigned"
+                    );
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+                    {members.map((m) => (
+                      <SelectItem key={m.user_id} value={m.user_id}>
+                        {m.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Due Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dueDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dueDate ? format(dueDate, "PPP") : "Set due date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dueDate}
+                      onSelect={(d) =>
+                        patch(
+                          { due_date: d ? d.toISOString() : null },
+                          d ? `Due ${format(d, "PPP")}` : "Due date cleared"
+                        )
+                      }
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </PageShell>
   );
 }

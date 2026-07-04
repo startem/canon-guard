@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import UserManagementPage from "./pages/UserManagementPage";
 import OnboardingWizard from "./pages/OnboardingWizard";
+import ClientManagement from "./pages/ClientManagement";
 import BrandStrategyBuilder from "./pages/BrandStrategyBuilder";
 import IngestBaseline from "./pages/IngestBaseline";
 import PositioningMessaging from "./pages/PositioningMessaging";
@@ -49,6 +50,7 @@ const App = () => (
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/onboarding" element={<OnboardingWizard />} />
+                        <Route path="/clients" element={<ClientManagement />} />
                         <Route path="/strategy-builder" element={<BrandStrategyBuilder />} />
                         <Route path="/ingest-baseline" element={<IngestBaseline />} />
                         <Route path="/positioning-messaging" element={<PositioningMessaging />} />

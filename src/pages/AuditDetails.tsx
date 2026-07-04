@@ -1,310 +1,262 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Image, FileText, Globe, AlertTriangle, CheckCircle, Clock, ClipboardCheck } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/layout/EmptyState";
+import { ArrowLeft, ClipboardCheck, History } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import type { AuditRecord, AuditFinding } from "@/hooks/useAuditRunner";
 
-interface AuditIssue {
-  id: string;
-  assetName: string;
-  assetType: "Logo" | "Image" | "Document" | "Webpage";
-  detectedDate: string;
-  issueDescription: string;
-  severity: "low" | "medium" | "high";
-  status: "open" | "in_progress" | "resolved";
-  assignee?: string;
-}
+const AUDIT_LABELS: Record<string, string> = {
+  "brand-consistency": "Brand Consistency",
+  content: "Content",
+  "visual-identity": "Visual Identity",
+  "brand-perception": "Brand Perception",
+  "social-media": "Social Media",
+  "legal-compliance": "Legal Compliance",
+  "competitor-analysis": "Competitor Analysis",
+  "customer-experience": "Customer Experience",
+  "digital-asset": "Digital Asset",
+  "employee-brand": "Employee Brand Alignment",
+};
 
-const mockIssues: AuditIssue[] = [
-  {
-    id: "1",
-    assetName: "homepage-hero.jpg",
-    assetType: "Image",
-    detectedDate: "2024-01-15",
-    issueDescription: "Logo placement violates 20px margin guideline",
-    severity: "medium",
-    status: "open"
-  },
-  {
-    id: "2", 
-    assetName: "product-brochure.pdf",
-    assetType: "Document",
-    detectedDate: "2024-01-14",
-    issueDescription: "Secondary brand colors used incorrectly",
-    severity: "high",
-    status: "in_progress",
-    assignee: "Sarah Wilson"
-  },
-  {
-    id: "3",
-    assetName: "about-us.html",
-    assetType: "Webpage",
-    detectedDate: "2024-01-13",
-    issueDescription: "Typography hierarchy inconsistent with brand guidelines",
-    severity: "low",
-    status: "resolved"
+const severityBadge = (s: string) => {
+  switch (s) {
+    case "critical":
+    case "high":
+      return "bg-destructive/10 text-destructive border-destructive/20";
+    case "medium":
+      return "bg-warning/10 text-warning border-warning/20";
+    default:
+      return "bg-primary/10 text-primary border-primary/20";
   }
-];
-
-const auditCategories = {
-  "logo-usage": "Logo Usage",
-  "color-palette": "Color Palette", 
-  "typography": "Typography",
-  "digital-assets": "Digital Assets"
 };
 
 export default function AuditDetails() {
   const { category } = useParams<{ category: string }>();
   const navigate = useNavigate();
-  const [selectedIssue, setSelectedIssue] = useState<AuditIssue | null>(null);
-  const [issues, setIssues] = useState(mockIssues);
+  const { currentClient } = useWorkspace();
+  const clientId = currentClient?.id ?? null;
 
-  const categoryName = auditCategories[category as keyof typeof auditCategories] || "Unknown Category";
-  const complianceRate = 73;
-  const totalAssets = 156;
-  const issuesFound = 12;
+  const [audits, setAudits] = useState<AuditRecord[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [findings, setFindings] = useState<AuditFinding[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high": return "destructive";
-      case "medium": return "secondary";
-      case "low": return "outline";
-      default: return "outline";
+  const categoryName = AUDIT_LABELS[category ?? ""] ?? "Brand";
+
+  const loadAudits = useCallback(async () => {
+    if (!clientId || !category) {
+      setAudits([]);
+      setLoading(false);
+      return;
     }
-  };
+    setLoading(true);
+    const { data } = await supabase
+      .from("audits")
+      .select("*")
+      .eq("client_id", clientId)
+      .eq("type", category)
+      .order("created_at", { ascending: false });
+    const list = (data ?? []) as AuditRecord[];
+    setAudits(list);
+    setSelectedId((prev) => (prev && list.some((a) => a.id === prev) ? prev : list[0]?.id ?? null));
+    setLoading(false);
+  }, [clientId, category]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "resolved": return "default";
-      case "in_progress": return "secondary";
-      case "open": return "destructive";
-      default: return "outline";
+  useEffect(() => {
+    loadAudits();
+  }, [loadAudits]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setFindings([]);
+      return;
     }
+    supabase
+      .from("audit_findings")
+      .select("*")
+      .eq("audit_id", selectedId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => setFindings((data ?? []) as AuditFinding[]));
+  }, [selectedId]);
+
+  const updateFindingStatus = async (id: string, status: string) => {
+    setFindings((prev) => prev.map((f) => (f.id === id ? { ...f, status } : f)));
+    const { error } = await supabase.from("audit_findings").update({ status }).eq("id", id);
+    if (error) toast({ title: "Update failed", description: error.message, variant: "destructive" });
+    else toast({ title: `Finding marked ${status}` });
   };
 
-  const getAssetIcon = (type: string) => {
-    switch (type) {
-      case "Image": return <Image className="h-4 w-4" />;
-      case "Document": return <FileText className="h-4 w-4" />;
-      case "Webpage": return <Globe className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
-    }
-  };
-
-  const handleAssignIssue = (issueId: string, assignee: string) => {
-    setIssues(prev => prev.map(issue => 
-      issue.id === issueId ? { ...issue, assignee, status: "in_progress" as const } : issue
-    ));
-    toast({
-      title: "Issue Assigned",
-      description: `Issue assigned to ${assignee}`
-    });
-  };
-
-  const handleStatusChange = (issueId: string, status: "open" | "in_progress" | "resolved") => {
-    setIssues(prev => prev.map(issue => 
-      issue.id === issueId ? { ...issue, status } : issue
-    ));
-    toast({
-      title: "Status Updated",
-      description: `Issue status changed to ${status.replace('_', ' ')}`
-    });
-  };
+  const selected = audits.find((a) => a.id === selectedId) ?? null;
+  const openFindings = findings.filter((f) => f.status === "open").length;
 
   return (
     <PageShell>
-        {/* Header */}
-        <PageHeader
-          icon={ClipboardCheck}
-          eyebrow="Analysis"
-          title={`${categoryName} Audit Details`}
-          description="Detailed compliance analysis and issue management."
-          actions={
-            <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Audits
-            </Button>
-          }
-        />
+      <PageHeader
+        icon={ClipboardCheck}
+        eyebrow="Analysis"
+        title={`${categoryName} Audit Details`}
+        description={
+          currentClient
+            ? `Audit history and findings for ${currentClient.name}.`
+            : "Detailed compliance analysis and issue management."
+        }
+        actions={
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Button>
+        }
+      />
 
-        {/* Summary Cards */}
+      {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Compliance Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{complianceRate}%</div>
-              <p className="text-sm text-muted-foreground">
-                {Math.round(totalAssets * complianceRate / 100)} of {totalAssets} assets compliant
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Assets</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalAssets}</div>
-              <p className="text-sm text-muted-foreground">Assets analyzed in this category</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Issues Found</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">{issuesFound}</div>
-              <p className="text-sm text-muted-foreground">Requiring attention</p>
-            </CardContent>
-          </Card>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-28" />
+          ))}
         </div>
+      ) : !clientId ? (
+        <EmptyState
+          icon={ClipboardCheck}
+          title="Select a client"
+          description="Choose a client from the switcher to view its audit history and findings."
+        />
+      ) : audits.length === 0 ? (
+        <EmptyState
+          icon={ClipboardCheck}
+          title="No audits run yet"
+          description={`Run a ${categoryName} audit from the dashboard to see findings and history here.`}
+          action={<Button onClick={() => navigate("/")}>Go to dashboard</Button>}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Latest Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{selected?.score ?? "—"}%</div>
+                <p className="text-sm text-muted-foreground">
+                  {selected ? new Date(selected.created_at).toLocaleDateString() : ""}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Runs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{audits.length}</div>
+                <p className="text-sm text-muted-foreground">Audits in this category</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Open Findings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">{openFindings}</div>
+                <p className="text-sm text-muted-foreground">In selected run</p>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Issues Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Detected Issues</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Asset</TableHead>
-                    <TableHead>Issue</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {issues.map((issue) => (
-                    <TableRow 
-                      key={issue.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedIssue(issue)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getAssetIcon(issue.assetType)}
-                          <div>
-                            <div className="font-medium">{issue.assetName}</div>
-                            <div className="text-sm text-muted-foreground">{issue.assetType}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="truncate" title={issue.issueDescription}>
-                          {issue.issueDescription}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getSeverityColor(issue.severity)}>
-                          {issue.severity}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusColor(issue.status)}>
-                          {issue.status.replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{issue.detectedDate}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Findings</CardTitle>
+                {selected?.summary && (
+                  <p className="text-sm text-muted-foreground pt-1">{selected.summary}</p>
+                )}
+              </CardHeader>
+              <CardContent>
+                {findings.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-6 text-center">
+                    No findings recorded in this run — the material was fully on brand.
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Finding</TableHead>
+                        <TableHead>Severity</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {findings.map((f) => (
+                        <TableRow key={f.id}>
+                          <TableCell className="max-w-md">
+                            <div className="font-medium">{f.title}</div>
+                            {f.recommendation && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                Fix: {f.recommendation}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={severityBadge(f.severity)}>{f.severity}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Select value={f.status} onValueChange={(v) => updateFindingStatus(f.id, v)}>
+                              <SelectTrigger className="w-[140px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="open">Open</SelectItem>
+                                <SelectItem value="in-progress">In Progress</SelectItem>
+                                <SelectItem value="resolved">Resolved</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Issue Detail Panel */}
-          {selectedIssue && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {getAssetIcon(selectedIssue.assetType)}
-                  Issue Details
+                  <History className="h-4 w-4" /> Audit History
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Asset</h4>
-                  <p className="text-sm">{selectedIssue.assetName}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Issue Description</h4>
-                  <p className="text-sm text-muted-foreground">{selectedIssue.issueDescription}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Remediation Steps</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Adjust logo positioning to maintain 20px margin</li>
-                    <li>• Ensure proper contrast ratios are maintained</li>
-                    <li>• Update asset metadata for tracking</li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium">Assign to</label>
-                    <Select onValueChange={(value) => handleAssignIssue(selectedIssue.id, value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={selectedIssue.assignee || "Select assignee"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Sarah Wilson">Sarah Wilson</SelectItem>
-                        <SelectItem value="Mike Chen">Mike Chen</SelectItem>
-                        <SelectItem value="Emma Davis">Emma Davis</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Status</label>
-                    <Select 
-                      value={selectedIssue.status} 
-                      onValueChange={(value: "open" | "in_progress" | "resolved") => 
-                        handleStatusChange(selectedIssue.id, value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Comments</label>
-                    <Textarea placeholder="Add a comment..." className="mt-1" />
-                  </div>
-
-                  <Button className="w-full">Save Changes</Button>
-                </div>
+              <CardContent className="space-y-2">
+                {audits.map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => setSelectedId(a.id)}
+                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                      a.id === selectedId
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{a.score ?? "—"}%</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(a.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{a.title}</div>
+                  </button>
+                ))}
               </CardContent>
             </Card>
-          )}
-        </div>
+          </div>
+        </>
+      )}
     </PageShell>
   );
 }

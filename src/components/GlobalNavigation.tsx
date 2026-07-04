@@ -24,13 +24,14 @@ import {
   BarChart3,
   Bell,
   Archive,
-  ClipboardList,
+  Building2,
   Settings,
   Sparkles,
 } from "lucide-react";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, group: "Overview" },
+  { title: "Clients", url: "/clients", icon: Building2, group: "Overview" },
   { title: "Ingest & Baseline", url: "/ingest-baseline", icon: Scan, group: "Setup" },
   { title: "Strategy Builder", url: "/strategy-builder", icon: Target, group: "Strategy" },
   { title: "Positioning & Messaging", url: "/positioning-messaging", icon: MessageSquare, group: "Strategy" },
@@ -39,8 +40,7 @@ const navigationItems = [
   { title: "Experience & Operations", url: "/experience-operations", icon: Users, group: "Operations" },
   { title: "Visibility & Growth", url: "/visibility-growth", icon: TrendingUp, group: "Growth" },
   { title: "Governance & Alerts", url: "/governance-alerts", icon: Shield, group: "Management" },
-  { title: "Audit Details", url: "/audit-details/visual-identity", icon: Search, group: "Analysis" },
-  { title: "Issue Detail", url: "/issue-detail/1", icon: ClipboardList, group: "Analysis" },
+  { title: "Audit Details", url: "/audit-details/brand-consistency", icon: Search, group: "Analysis" },
   { title: "Analytics Dashboard", url: "/analytics-dashboard", icon: BarChart3, group: "Analytics" },
   { title: "Notifications & Alerts", url: "/notifications-alerts", icon: Bell, group: "Management" },
   { title: "Brand Canon", url: "/brand-canon", icon: Archive, group: "Resources" },

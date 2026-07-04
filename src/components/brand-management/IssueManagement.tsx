@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertTriangle,
@@ -17,15 +22,44 @@ import {
   User,
   CheckCircle2,
   Eye,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { useIssues, IssueSeverity } from "@/hooks/useIssues";
 
 export const IssueManagement = () => {
   const navigate = useNavigate();
-  const { issues, loading, clientId, updateStatus } = useIssues();
+  const { issues, loading, clientId, updateStatus, createIssue } = useIssues();
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("severity");
   const [searchQuery, setSearchQuery] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newIssue, setNewIssue] = useState({
+    title: "",
+    description: "",
+    severity: "medium" as IssueSeverity,
+    category: "",
+  });
+
+  const handleCreate = async () => {
+    if (!newIssue.title.trim()) return;
+    setSaving(true);
+    const { error } = await createIssue({
+      title: newIssue.title.trim(),
+      description: newIssue.description.trim() || null,
+      severity: newIssue.severity,
+      category: newIssue.category.trim() || null,
+    });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Couldn't create issue", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Issue created" });
+    setNewIssue({ title: "", description: "", severity: "medium", category: "" });
+    setCreateOpen(false);
+  };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
@@ -139,8 +173,15 @@ export const IssueManagement = () => {
       {/* Filters and Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Issue Management</CardTitle>
-          <CardDescription>Track and resolve brand compliance issues</CardDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Issue Management</CardTitle>
+              <CardDescription>Track and resolve brand compliance issues</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => setCreateOpen(true)} disabled={!clientId} className="gap-2 shrink-0">
+              <Plus className="w-4 h-4" /> New Issue
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -267,6 +308,71 @@ export const IssueManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create issue</DialogTitle>
+            <DialogDescription>Log a brand compliance issue for this client.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ni-title">Title</Label>
+              <Input
+                id="ni-title"
+                value={newIssue.title}
+                onChange={(e) => setNewIssue({ ...newIssue, title: e.target.value })}
+                placeholder="e.g. Off-brand logo on landing page"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ni-desc">Description</Label>
+              <Textarea
+                id="ni-desc"
+                value={newIssue.description}
+                onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })}
+                placeholder="Describe the issue and where it appears…"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Severity</Label>
+                <Select
+                  value={newIssue.severity}
+                  onValueChange={(v: IssueSeverity) => setNewIssue({ ...newIssue, severity: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ni-cat">Category</Label>
+                <Input
+                  id="ni-cat"
+                  value={newIssue.category}
+                  onChange={(e) => setNewIssue({ ...newIssue, category: e.target.value })}
+                  placeholder="e.g. Visual Identity"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreate} disabled={saving || !newIssue.title.trim()}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Create issue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
