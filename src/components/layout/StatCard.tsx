@@ -51,7 +51,7 @@ export function StatCard({
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         {Icon && (
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Icon className="h-4.5 w-4.5" />
+            <Icon className="h-5 w-5" />
           </div>
         )}
       </div>
