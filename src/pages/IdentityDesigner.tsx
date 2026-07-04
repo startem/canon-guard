@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,15 +137,13 @@ const IdentityDesigner = () => {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="space-y-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Identity Designer
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Create and manage your brand's visual identity system
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        icon={Palette}
+        eyebrow="Design"
+        title="Identity Designer"
+        description="Create and manage your brand's visual identity system."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Content */}
@@ -526,7 +526,7 @@ const IdentityDesigner = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 };
 
