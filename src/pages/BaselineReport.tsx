@@ -273,6 +273,6 @@ export const BaselineReport = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 };
