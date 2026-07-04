@@ -179,17 +179,14 @@ export function ExperienceOperations() {
   };
 
   return (
-    <Layout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Experience & Operations</h1>
-            <p className="text-muted-foreground mt-2">
-              Manage brand experiences across all customer touchpoints
-            </p>
-          </div>
-          
-          <div className="flex gap-3">
+    <PageShell>
+      <PageHeader
+        icon={Layers}
+        eyebrow="Operations"
+        title="Experience & Operations"
+        description="Manage brand experiences across all customer touchpoints."
+        actions={
+          <>
             <Button variant="outline" onClick={handleBulkMarkCompliant}>
               <Check className="h-4 w-4 mr-2" />
               Mark All Compliant
@@ -281,8 +278,9 @@ export function ExperienceOperations() {
               </div>
             </DialogContent>
             </Dialog>
-          </div>
-        </div>
+          </>
+        }
+      />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {touchpoints.map((touchpoint) => {
@@ -290,7 +288,7 @@ export function ExperienceOperations() {
             const statusInfo = statusConfig[touchpoint.status];
             
             return (
-              <Card key={touchpoint.id} className="relative">
+              <Card key={touchpoint.id} className="relative shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevated">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -368,7 +366,6 @@ export function ExperienceOperations() {
             }}
           />
         )}
-      </div>
-    </Layout>
+    </PageShell>
   );
 }
