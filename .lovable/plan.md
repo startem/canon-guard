@@ -1,45 +1,84 @@
-# Platform Interior Redesign — Expert IA & UX
+# CanonGuard — Application Audit & Competitive Strategy
 
-The app chrome (sidebar/header) is already strong. The problem is the **interiors**: every page hand-rolls its own header, spacing, and card treatment, so the product feels inconsistent and "basic." Plus two real layout bugs. This plan fixes the system first, then rolls it across pages so quality is uniform — not page-by-page guesswork.
+**Surface in scope:** the platform (agency-facing app). Marketing site copy is referenced only where it over-promises vs. what's built. This document is an audit + strategy + roadmap — no code changes happen until you approve.
 
-## Design principles applied
-- **One page grammar everywhere**: consistent max-width, vertical rhythm, page header with breadcrumb + title + description + primary action, then content sections.
-- **Depth & hierarchy**: elevated cards with the existing `--shadow-elevated`, clear section headings, restrained use of the primary gradient for *one* focal action per view (not everywhere).
-- **Information flow**: summary metrics up top → primary work area → contextual/secondary panels on the right → related actions at the bottom. Scannable left-to-right, top-to-bottom.
-- **Every state designed**: empty, loading (skeletons), and populated. No bare "Select a client" text.
-- **Responsive**: grids collapse cleanly (4→2→1), right rails stack under main content on tablet/mobile.
-- Semantic tokens only — no hardcoded colors.
+## 1. What is actually real today (built + deployed + verified in code)
 
-## Phase 1 — Foundation (this wave)
-Build reusable interior primitives in `src/components/layout/`:
-- `PageShell` — consistent container, padding, max-width, vertical spacing.
-- `PageHeader` — breadcrumb, title (font-display), description, actions slot, optional status badges.
-- `StatCard` — metric, label, trend delta, icon, sparkline slot; uniform across dashboard/analytics.
-- `SectionCard` — titled content block with description + actions, elevated surface.
-- `EmptyState` — icon, title, message, optional CTA (replaces bare placeholder text).
-- Skeleton loaders for cards/charts.
+Genuinely backed by the database and working:
+- **Auth & multi-tenancy** — sign-in/up, Google OAuth, reset, auto-provisioned agency, RLS-enforced Agency→Member→Client isolation.
+- **Brand Canon CRUD** — color tokens, messaging pillars, boilerplate, legal items (full create/edit/delete).
+- **AI Audit engine** — all 10 audit types call a real Gemini edge function and persist audits, findings, issues, and notifications.
+- **Governance** — rules, approval roles, schedule config CRUD.
+- **Notifications** — realtime feed, mark-read/delete.
 
-Also in Phase 1, fix the two bugs found:
-1. **Analytics charts** render as empty dashed boxes — give chart containers explicit height and verify data wiring.
-2. **Governance & Alerts** renders a **duplicated header bar** — remove the stray inner header.
+## 2. Gaps — mock UI with no persistence
 
-## Phase 2 — Roll across pages (batched waves, ~3 pages per wave)
-Apply the primitives + IA flow to each page. Grouped to batch credits:
-- Wave A: Dashboard (Brand Management Hub), Analytics Dashboard, Governance & Alerts
-- Wave B: Personality & Story, Positioning & Messaging, Strategy Builder
-- Wave C: Identity Designer, Experience & Operations, Visibility & Growth
-- Wave D: Brand Canon, Notifications & Alerts, Audit Details / Issue Detail
-- Wave E: Onboarding, Ingest & Baseline, Baseline Report, User Management
+These look finished but store nothing (data vanishes on reload):
+- **Onboarding Wizard** — collects 5 steps but never creates a `clients` row. New users land with no client, so every data hook returns empty. *Highest-impact dead end.*
+- **No client create/edit/delete UI anywhere** — there is no route to add a client.
+- **6-page Strategy Builder flow** (Strategy → Positioning → Personality → Identity → Experience → Visibility) — toast + navigate only; nothing feeds the Brand Canon.
+- **Ingest & Baseline scanner + Baseline Report** — fake `setTimeout` with hardcoded scores.
+- **Analytics Dashboard** — all charts hardcoded; filters do nothing.
+- **User Management** — entirely localStorage; never touches `agency_members`/`profiles`.
+- **Version History, Backup/Restore, Brand Ingestion** — mock arrays; handlers only `console.log`.
+- **Brand Hierarchy / sub-brands** — in-memory only; no `brands` table.
+- **Brand Reporting** — hardcoded reports; buttons have no handlers.
 
-Each page gets: unified PageHeader, metrics via StatCard, work areas in SectionCards, designed empty/loading states, responsive grid pass.
+## 3. Process gaps — broken workflows (loops that start but never complete)
 
-## Phase 3 — Polish pass
-Micro-interactions (hover/active transitions already tokenized), focus states, consistent iconography, and a final responsive sweep at mobile/tablet/desktop.
+- **Audit → Issue → Detail is a dead end.** Audits correctly write real `issues`, but `/issue-detail/:id` ignores the id and always shows a hardcoded fixture. The entire issue lifecycle cannot be worked.
+- **`/audit-details/:category` is orphaned** — mock data, disconnected from real `audit_findings`.
+- **Issue assignment is impossible** — UI assigns to hardcoded names ("Sarah Wilson"…) but `assignee` is a UUID FK. No real assignment, due-date editing, or manual issue creation.
+- **"Drift against Baselines" does not exist.** No baselines table, no snapshotting, no drift computation — it is the core marketed concept but is pure UI theater.
+- **Scheduled audits never fire.** `audit_schedules` stores config but nothing (cron/edge trigger) executes it.
+- **Strategy Builder never populates the Canon** it's meant to seed.
+- **Dashboard overview "Run" buttons** are fake (`console.log`), unlike the real per-tab audit panels.
+
+## 4. Backend / integrity issues
+
+- **`run-audit` CORS import is invalid** (`npm:@supabase/supabase-js@2/cors` doesn't exist) — risks breaking browser preflight; needs inline `corsHeaders`. Verify against live function logs.
+- Dead columns never written: `governance_rules.created_by`, `issues.assignee/due_date`, most of `audit_schedules`, `profiles.avatar_url`.
+- `notifications` scoped to agency only (any member sees all clients' notifications); unbounded query with no pagination.
+- No dedup/idempotency on repeated audit runs.
+
+## 5. Competitive landscape (market research)
+
+| Competitor | Focus | Their gap = our opening |
+|---|---|---|
+| Frontify / Bynder / Kadanza | DAM + guidelines + portals | Storage-centric; weak on *automated drift detection over time* |
+| BrandGuard AI / Marka / BrandPatrol | AI asset-level brand checks | Single-brand enterprise; not agency multi-client |
+| Adobe GenStudio Brand Intelligence | Real-time validation in Adobe stack | Locked to Adobe ecosystem, enterprise-priced |
+| Warrant | Marketing/legal regulatory compliance | Compliance niche, not full brand governance |
+
+**Our defensible wedge:** *agency-first, multi-client brand governance with a versioned Brand Canon and quantified Drift-over-time.* Competitors are mostly single-brand DAMs or one-shot asset checkers. To win we must make three things undeniably real and best-in-class: (a) the **Brand Canon as living source-of-truth**, (b) **AI audit → issue → resolution lifecycle**, (c) **Baseline + Drift trend** that no DAM offers.
+
+## 6. Recommended remediation roadmap (batched to control credit burn)
+
+**Wave 1 — Fix the broken spine (make the core loop real).** *What's built vs verified will be stated per item.*
+1. Client CRUD + wire Onboarding Wizard to actually create a `clients` row.
+2. Make `/issue-detail/:id` load the real issue; enable status, real assignee (agency members), due-date, and manual issue creation.
+3. Reconnect `/audit-details` to real `audit_findings`; add an audit history view.
+4. Fix `run-audit` CORS import; verify via edge logs.
+
+**Wave 2 — Deliver the differentiator (Baselines & Drift).**
+5. Add `baselines` + `brands` tables; real ingest snapshot; compute drift from successive audit scores; wire Baseline Report + a Drift trend view to live data.
+
+**Wave 3 — Real data surfaces.**
+6. Analytics Dashboard on real audit/issue/notification data with working filters.
+7. User Management on real `agency_members`/`profiles` (invite, role change) — replace localStorage.
+
+**Wave 4 — Strategy flow + automation.**
+8. Persist the 6-page Strategy Builder into the Brand Canon.
+9. Version history + backup/restore against a real snapshot table.
+10. Execute `audit_schedules` (pg_cron or scheduled function) + notifications for overdue issues and expiring legal items.
+
+## 7. Decisions I need from you
+
+- **Scope now:** approve the full 4-wave roadmap, or start with Wave 1 only (fix the broken core loop first)?
+- **Mock pages:** for pages that are pure mock (Strategy flow, Analytics, etc.) — make them real, or cut/hide them until built to avoid demoing vapor?
+- **Baselines & Drift:** confirm this is the flagship differentiator to invest in (Wave 2), since it's our clearest competitive moat.
 
 ## Technical notes
-- New files under `src/components/layout/`; no business-logic changes — presentation only.
-- Reuse existing tokens in `src/index.css` / `tailwind.config.ts` (gradients, shadows, fonts already added).
-- Verify each wave with a typecheck + Playwright screenshots at desktop and mobile widths.
-
-## What I need from you
-Confirm this foundation-first, batched approach. If you'd rather I skip the plan and just start executing Phase 1 immediately, say "go" and I'll build the primitives + fix both bugs in one wave.
+- Wave 1 touches: `App.tsx` (new routes), `OnboardingWizard.tsx`, new client-CRUD components, `IssueDetail.tsx`, `AuditDetails.tsx`, `useIssues.tsx`, `run-audit/index.ts`.
+- Wave 2 needs new migrations (`baselines`, `brands`, drift snapshot) with GRANTs + RLS following the Agency→Client access helpers already in place.
+- Automation (Wave 4) requires pg_cron availability; confirm plan tier or use a scheduled edge function.
