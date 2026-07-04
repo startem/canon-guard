@@ -80,7 +80,6 @@ const OnboardingWizard = () => {
   const { currentAgency, refreshClients, setCurrentClientId } = useWorkspace();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [finishing, setFinishing] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
     step1: {} as Step1Data,
     step2: { websiteUrls: [""], documents: [] } as Step2Data,
@@ -115,7 +114,6 @@ const OnboardingWizard = () => {
       return;
     }
 
-    setFinishing(true);
     const website = (merged.step2.websiteUrls ?? []).find((u) => u.trim() !== "") ?? null;
     const { data: client, error } = await supabase
       .from("clients")
@@ -129,7 +127,6 @@ const OnboardingWizard = () => {
       })
       .select("id")
       .single();
-    setFinishing(false);
 
     if (error) {
       toast({ title: "Couldn't create client", description: error.message, variant: "destructive" });
