@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Image, FileText, Globe, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { ArrowLeft, Image, FileText, Globe, AlertTriangle, CheckCircle, Clock, ClipboardCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface AuditIssue {
