@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { SectionCard } from "@/components/layout/SectionCard";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,27 +84,23 @@ export function GovernanceAlerts() {
   };
 
   return (
-    <Layout>
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Governance &amp; Alerts</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage brand governance rules, approval workflows, and audit scheduling
-            {!clientId && " — select a client to begin"}
-          </p>
-        </div>
+    <PageShell>
+      <PageHeader
+        icon={Shield}
+        eyebrow="Management"
+        title="Governance & Alerts"
+        description="Manage brand governance rules, approval workflows, and audit scheduling."
+      />
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Rules & Guardrails */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    <span>Rules &amp; Guardrails</span>
-                  </div>
-                  <Dialog open={isRuleDialogOpen} onOpenChange={setIsRuleDialogOpen}>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Rules & Guardrails */}
+        <div className="lg:col-span-2">
+          <SectionCard
+            icon={Shield}
+            title="Rules & Guardrails"
+            description="Define the brand guardrails audits enforce."
+            actions={
+              <Dialog open={isRuleDialogOpen} onOpenChange={setIsRuleDialogOpen}>
                     <DialogTrigger asChild>
                       <Button disabled={!clientId}>
                         <Plus className="h-4 w-4 mr-2" />
@@ -159,9 +157,8 @@ export function GovernanceAlerts() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            }
+          >
                 {loading ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map((i) => (
@@ -169,13 +166,20 @@ export function GovernanceAlerts() {
                     ))}
                   </div>
                 ) : rules.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-6 text-center">
-                    {clientId ? "No rules yet. Add your first governance rule." : "Select a client to manage rules."}
-                  </p>
+                  <EmptyState
+                    compact
+                    icon={Shield}
+                    title={clientId ? "No rules yet" : "No client selected"}
+                    description={
+                      clientId
+                        ? "Add your first governance rule to start enforcing brand guardrails."
+                        : "Choose a client from the switcher above to manage its governance rules."
+                    }
+                  />
                 ) : (
                   <div className="space-y-4">
                     {rules.map((rule) => (
-                      <div key={rule.id} className="flex items-start justify-between p-4 border rounded-lg">
+                      <div key={rule.id} className="flex items-start justify-between gap-4 rounded-lg border border-border/60 p-4 transition-colors hover:bg-muted/40">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center space-x-3">
                             <h4 className="font-medium">{rule.title}</h4>
@@ -193,19 +197,16 @@ export function GovernanceAlerts() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
+          </SectionCard>
+        </div>
 
-          {/* Approvals */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  <span>Approvals</span>
-                </div>
-                <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+        {/* Approvals */}
+        <SectionCard
+          icon={Users}
+          title="Approvals"
+          description="Who signs off on brand changes."
+          actions={
+            <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" disabled={!clientId}>
                       <Plus className="h-4 w-4 mr-2" />
@@ -262,19 +263,25 @@ export function GovernanceAlerts() {
                     </div>
                   </DialogContent>
                 </Dialog>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          }
+        >
               {loading ? (
                 <Skeleton className="h-24 w-full" />
               ) : roles.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">
-                  {clientId ? "No approval roles yet." : "Select a client to manage approvals."}
-                </p>
+                <EmptyState
+                  compact
+                  icon={Users}
+                  title={clientId ? "No approval roles yet" : "No client selected"}
+                  description={
+                    clientId
+                      ? "Add roles to define who must approve messaging, visual and legal changes."
+                      : "Select a client to configure its approval workflow."
+                  }
+                />
               ) : (
                 <div className="space-y-4">
                   {roles.map((role) => (
-                    <div key={role.id} className="border rounded-lg p-4 space-y-3">
+                    <div key={role.id} className="space-y-3 rounded-lg border border-border/60 p-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-medium">{role.role_name}</h4>
@@ -306,18 +313,11 @@ export function GovernanceAlerts() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+        </SectionCard>
 
-          {/* Audit Scheduling */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Bell className="h-5 w-5 text-primary" />
-                <span>Audit Scheduling</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        {/* Audit Scheduling */}
+        <SectionCard icon={Bell} title="Audit Scheduling" description="How often automated audits run.">
+          <div className="space-y-6">
               <div>
                 <Label htmlFor="auditFrequency">Audit Frequency</Label>
                 <Select value={frequency} onValueChange={setFrequency} disabled={!clientId}>
@@ -335,10 +335,9 @@ export function GovernanceAlerts() {
                   How often automated audits should run for this client.
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+          </div>
+        </SectionCard>
       </div>
-    </Layout>
+    </PageShell>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Layout } from "@/components/Layout";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, TrendingUp, BarChart3, Plus, CalendarIcon, CheckCircle, XCircle, Wand2 } from "lucide-react";
+import { Search, TrendingUp, BarChart3, Plus, CalendarIcon, CheckCircle, XCircle, Wand2, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -138,16 +139,15 @@ export function VisibilityGrowth() {
   };
 
   return (
-    <Layout>
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Visibility & Growth</h1>
-          <p className="text-muted-foreground mt-2">
-            Plan and execute strategies to increase brand visibility and drive growth
-          </p>
-        </div>
+    <PageShell>
+      <PageHeader
+        icon={Rocket}
+        eyebrow="Growth"
+        title="Visibility & Growth"
+        description="Plan and execute strategies to increase brand visibility and drive growth."
+      />
 
-        <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
           {/* SEO Plan */}
           <Card>
             <CardHeader>
@@ -433,7 +433,6 @@ export function VisibilityGrowth() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </Layout>
+    </PageShell>
   );
 }
