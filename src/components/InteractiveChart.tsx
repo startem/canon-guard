@@ -70,13 +70,29 @@ export const InteractiveChart = ({
         break;
     }
 
-    return data
-      .filter(point => new Date(point.timestamp) >= cutoffDate)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-      .map(point => ({
+    // Parse timestamps defensively — some series use labels ("2024-Jan-01")
+    // that don't parse to a valid Date. Keep original order as a fallback.
+    const enriched = data.map((point, index) => {
+      const parsed = new Date(point.timestamp);
+      const valid = !Number.isNaN(parsed.getTime());
+      return {
         ...point,
-        formattedTime: new Date(point.timestamp).toLocaleDateString(),
-      }));
+        _index: index,
+        _date: valid ? parsed : null,
+        formattedTime: valid ? parsed.toLocaleDateString() : point.timestamp,
+      };
+    });
+
+    const withinRange = enriched.filter((p) => p._date && p._date >= cutoffDate);
+
+    // If the range filter removes everything (e.g. historical/demo data that
+    // predates the window), fall back to the full series so charts never blank.
+    const result = withinRange.length > 0 ? withinRange : enriched;
+
+    return [...result].sort((a, b) => {
+      if (a._date && b._date) return a._date.getTime() - b._date.getTime();
+      return a._index - b._index;
+    });
   }, [data, timeRange]);
 
   const trend = useMemo(() => {
