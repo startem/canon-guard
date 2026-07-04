@@ -17,6 +17,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { ArrowRight, ArrowLeft, Building2, Globe, Target, TrendingUp, CheckCircle, Upload, X, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 const industries = [
   "Technology", "Healthcare", "Finance", "Retail", "Manufacturing", 
@@ -75,8 +77,10 @@ type Step5Data = z.infer<typeof step5Schema>;
 
 const OnboardingWizard = () => {
   const navigate = useNavigate();
+  const { currentAgency, refreshClients, setCurrentClientId } = useWorkspace();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [finishing, setFinishing] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
     step1: {} as Step1Data,
     step2: { websiteUrls: [""], documents: [] } as Step2Data,
@@ -88,11 +92,9 @@ const OnboardingWizard = () => {
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
 
-  const handleStepComplete = (stepNumber: number, data: any) => {
-    setOnboardingData(prev => ({
-      ...prev,
-      [`step${stepNumber}`]: data
-    }));
+  const handleStepComplete = async (stepNumber: number, data: any) => {
+    const merged = { ...onboardingData, [`step${stepNumber}`]: data };
+    setOnboardingData(merged);
 
     if (!completedSteps.includes(stepNumber)) {
       setCompletedSteps(prev => [...prev, stepNumber]);
@@ -100,14 +102,48 @@ const OnboardingWizard = () => {
 
     if (stepNumber < totalSteps) {
       setCurrentStep(stepNumber + 1);
-    } else {
-      // Complete onboarding
-      toast({
-        title: "Onboarding Complete!",
-        description: "Welcome to your Brand Management Platform. Let's start building your brand strategy."
-      });
-      navigate("/");
+      return;
     }
+
+    // Final step — persist a real client brand from the collected data.
+    if (!currentAgency) {
+      toast({
+        title: "No workspace found",
+        description: "We couldn't find your agency workspace. Please sign in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFinishing(true);
+    const website = (merged.step2.websiteUrls ?? []).find((u) => u.trim() !== "") ?? null;
+    const { data: client, error } = await supabase
+      .from("clients")
+      .insert({
+        agency_id: currentAgency.id,
+        name: merged.step1.companyName,
+        industry: merged.step1.industry ?? null,
+        website,
+        description: merged.step1.mission ?? null,
+        status: "active",
+      })
+      .select("id")
+      .single();
+    setFinishing(false);
+
+    if (error) {
+      toast({ title: "Couldn't create client", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    await refreshClients();
+    if (client?.id) setCurrentClientId(client.id);
+
+    toast({
+      title: "Onboarding Complete!",
+      description: `${merged.step1.companyName} is set up. Start building its Brand Canon.`,
+    });
+    navigate("/");
   };
 
   const handleBack = () => {
