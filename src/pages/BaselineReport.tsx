@@ -1,4 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -115,26 +117,26 @@ export const BaselineReport = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <PageShell>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Baseline Report</h1>
-          <p className="text-muted-foreground mt-2">
-            Complete analysis of your brand assets and compliance status
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export PDF
-          </Button>
-          <Button variant="outline">
-            <FileText className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        icon={FileText}
+        eyebrow="Setup"
+        title="Baseline Report"
+        description="Complete analysis of your brand assets and compliance status."
+        actions={
+          <>
+            <Button variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button variant="outline">
+              <FileText className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+          </>
+        }
+      />
 
       {/* Executive Summary */}
       <Card>
