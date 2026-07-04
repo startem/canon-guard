@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { SectionCard } from "@/components/layout/SectionCard";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield, Plus, Users, Bell, AlertTriangle, Info, XCircle, Trash2, AlertOctagon } from "lucide-react";
+import { Shield, Plus, Users, Bell, AlertTriangle, Info, XCircle, Trash2, AlertOctagon, ClipboardList } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGovernance, Severity } from "@/hooks/useGovernance";
 
