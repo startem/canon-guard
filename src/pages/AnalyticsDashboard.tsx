@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { SectionCard } from "@/components/layout/SectionCard";
+import { StatCard } from "@/components/layout/StatCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
-import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
+import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, BarChart3, Heart, ShieldCheck, AlertOctagon, LineChart as LineChartIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { InteractiveChart } from "@/components/InteractiveChart";
