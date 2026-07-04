@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertTriangle,
@@ -17,15 +22,44 @@ import {
   User,
   CheckCircle2,
   Eye,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { useIssues, IssueSeverity } from "@/hooks/useIssues";
 
 export const IssueManagement = () => {
   const navigate = useNavigate();
-  const { issues, loading, clientId, updateStatus } = useIssues();
+  const { issues, loading, clientId, updateStatus, createIssue } = useIssues();
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("severity");
   const [searchQuery, setSearchQuery] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newIssue, setNewIssue] = useState({
+    title: "",
+    description: "",
+    severity: "medium" as IssueSeverity,
+    category: "",
+  });
+
+  const handleCreate = async () => {
+    if (!newIssue.title.trim()) return;
+    setSaving(true);
+    const { error } = await createIssue({
+      title: newIssue.title.trim(),
+      description: newIssue.description.trim() || null,
+      severity: newIssue.severity,
+      category: newIssue.category.trim() || null,
+    });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Couldn't create issue", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Issue created" });
+    setNewIssue({ title: "", description: "", severity: "medium", category: "" });
+    setCreateOpen(false);
+  };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
