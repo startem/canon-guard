@@ -72,17 +72,15 @@ export default function AnalyticsDashboard() {
   const [selectedBrand, setSelectedBrand] = useState("main");
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <PageShell>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-            <p className="text-muted-foreground">Brand performance metrics and insights</p>
-          </div>
-
-          {/* Filters */}
-          <div className="flex items-center gap-3">
+        <PageHeader
+          icon={LineChartIcon}
+          eyebrow="Analytics"
+          title="Analytics Dashboard"
+          description="Brand performance metrics and insights."
+          actions={
+            <>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-[240px] justify-start">
@@ -126,62 +124,40 @@ export default function AnalyticsDashboard() {
                 <SelectItem value="sub2">Sub-brand B</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Brand Health Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">91%</div>
-              <div className="flex items-center gap-1 text-sm">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-green-600">+3% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Sentiment Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">75%</div>
-              <div className="flex items-center gap-1 text-sm">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-green-600">Positive sentiment</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Compliance Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">82%</div>
-              <div className="flex items-center gap-1 text-sm">
-                <TrendingDown className="h-4 w-4 text-orange-600" />
-                <span className="text-orange-600">-2% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active Issues</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">85</div>
-              <div className="flex items-center gap-1 text-sm">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <span className="text-orange-600">12 high priority</span>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Brand Health Score"
+            value="91%"
+            icon={Heart}
+            tone="primary"
+            trend={{ value: "+3%", direction: "up" }}
+            hint="from last month"
+          />
+          <StatCard
+            label="Sentiment Score"
+            value="75%"
+            icon={BarChart3}
+            trend={{ value: "Positive", direction: "up" }}
+          />
+          <StatCard
+            label="Compliance Rate"
+            value="82%"
+            icon={ShieldCheck}
+            trend={{ value: "-2%", direction: "down" }}
+            hint="from last month"
+          />
+          <StatCard
+            label="Active Issues"
+            value="85"
+            icon={AlertOctagon}
+            tone="destructive"
+            trend={{ value: "12 high priority", direction: "down" }}
+          />
         </div>
 
         {/* Interactive Charts */}
@@ -247,12 +223,8 @@ export default function AnalyticsDashboard() {
           />
 
           {/* Issue Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Issue Distribution by Severity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
+          <SectionCard title="Issue Distribution by Severity" icon={AlertTriangle}>
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -273,8 +245,7 @@ export default function AnalyticsDashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               </ChartContainer>
-            </CardContent>
-          </Card>
+          </SectionCard>
         </div>
 
         {/* Cross-Flow Links */}
@@ -315,11 +286,7 @@ export default function AnalyticsDashboard() {
         />
 
         {/* Top Brand Mentions Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top 10 URLs with Brand Mentions</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <SectionCard title="Top 10 URLs with Brand Mentions" icon={BarChart3} flush contentClassName="px-2 pb-2">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -351,9 +318,7 @@ export default function AnalyticsDashboard() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        </SectionCard>
+    </PageShell>
   );
 }
