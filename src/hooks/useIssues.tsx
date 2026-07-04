@@ -51,10 +51,42 @@ export const useIssues = () => {
     await supabase.from("issues").update({ status }).eq("id", id);
   }, []);
 
+  const updateIssue = useCallback(
+    async (id: string, fields: Partial<Pick<Issue, "status" | "severity" | "assignee" | "due_date" | "title" | "description" | "category">>) => {
+      setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, ...fields } : i)));
+      const { error } = await supabase.from("issues").update(fields).eq("id", id);
+      return { error: error?.message ?? null };
+    },
+    []
+  );
+
+  const createIssue = useCallback(
+    async (fields: {
+      title: string;
+      description?: string | null;
+      severity: IssueSeverity;
+      category?: string | null;
+      assignee?: string | null;
+      due_date?: string | null;
+    }) => {
+      if (!clientId) return { error: "Select a client first.", data: null };
+      const { data, error } = await supabase
+        .from("issues")
+        .insert({ ...fields, client_id: clientId, status: "open" })
+        .select("*")
+        .single();
+      if (!error && data) {
+        setIssues((prev) => [data as Issue, ...prev]);
+      }
+      return { error: error?.message ?? null, data: (data as Issue) ?? null };
+    },
+    [clientId]
+  );
+
   const remove = useCallback(async (id: string) => {
     setIssues((prev) => prev.filter((i) => i.id !== id));
     await supabase.from("issues").delete().eq("id", id);
   }, []);
 
-  return { issues, loading, clientId, updateStatus, remove, reload: load };
+  return { issues, loading, clientId, updateStatus, updateIssue, createIssue, remove, reload: load };
 };
