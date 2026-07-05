@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, TrendingUp, BarChart3, Plus, CalendarIcon, CheckCircle, XCircle, Wand2, Rocket } from "lucide-react";
+import { Search, TrendingUp, BarChart3, Plus, CalendarIcon, CheckCircle, XCircle, Wand2, Rocket, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useBrandStrategy } from "@/hooks/useBrandStrategy";
 
 interface SEOAction {
   id: string;
@@ -74,6 +75,54 @@ export function VisibilityGrowth() {
     endDate: undefined as Date | undefined
   });
   const { toast } = useToast();
+  const { clientId, data, loading, saving, saveSection } = useBrandStrategy();
+
+  useEffect(() => {
+    if (data.visibility) {
+      if (typeof data.visibility.keywords === "string") setKeywords(data.visibility.keywords);
+      if (Array.isArray(data.visibility.seoActions)) setSeoActions(data.visibility.seoActions as SEOAction[]);
+      if (Array.isArray(data.visibility.campaigns)) {
+        setCampaigns(
+          (data.visibility.campaigns as any[]).map((c) => ({
+            ...c,
+            startDate: new Date(c.startDate),
+            endDate: new Date(c.endDate),
+          }))
+        );
+      }
+      if (typeof data.visibility.gaConnected === "boolean") setGaConnected(data.visibility.gaConnected);
+      if (typeof data.visibility.gscConnected === "boolean") setGscConnected(data.visibility.gscConnected);
+    }
+  }, [data.visibility]);
+
+  const handleSaveAll = async () => {
+    if (!clientId) {
+      toast({
+        title: "No client selected",
+        description: "Select or create a client before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const ok = await saveSection('visibility', {
+      keywords,
+      seoActions,
+      campaigns: campaigns.map((c) => ({
+        ...c,
+        startDate: c.startDate.toISOString(),
+        endDate: c.endDate.toISOString(),
+      })),
+      gaConnected,
+      gscConnected,
+    });
+    toast({
+      title: ok ? "Growth Plan Saved" : "Save failed",
+      description: ok
+        ? "Your visibility and growth plan has been saved."
+        : "Something went wrong saving your changes.",
+      variant: ok ? undefined : "destructive",
+    });
+  };
 
   const handleSEOActionToggle = (actionId: string) => {
     setSeoActions(prev => prev.map(action =>
@@ -145,6 +194,12 @@ export function VisibilityGrowth() {
         eyebrow="Growth"
         title="Visibility & Growth"
         description="Plan and execute strategies to increase brand visibility and drive growth."
+        actions={
+          <Button onClick={handleSaveAll} disabled={saving || loading} className="gap-2">
+            <Save className="h-4 w-4" />
+            {saving ? "Saving…" : "Save Growth Plan"}
+          </Button>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
