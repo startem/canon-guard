@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useBrandStrategy } from "@/hooks/useBrandStrategy";
 import { 
   User, 
   Sparkles, 
@@ -92,6 +94,24 @@ const PersonalityStory = () => {
   const [brandStory, setBrandStory] = useState("");
   
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { clientId, data, loading, saving, saveSection } = useBrandStrategy();
+
+  useEffect(() => {
+    if (data.personality) {
+      const savedTraits: string[] = data.personality.personalityTraits ?? [];
+      if (savedTraits.length) {
+        setPersonalityTraits(
+          personalityTraitOptions.map((trait) => ({
+            ...trait,
+            selected: savedTraits.includes(trait.id),
+          }))
+        );
+      }
+      if (data.personality.voiceTone) setSelectedVoiceTone(data.personality.voiceTone);
+      if (typeof data.personality.brandStory === "string") setBrandStory(data.personality.brandStory);
+    }
+  }, [data.personality]);
 
   const togglePersonalityTrait = (traitId: string) => {
     setPersonalityTraits(traits =>
@@ -132,11 +152,28 @@ From our first client to our latest product launch, we've remained focused on on
     });
   };
 
-  const saveChanges = () => {
-    toast({
-      title: "Brand Personality Saved",
-      description: "Your brand personality and story have been updated successfully.",
+  const saveChanges = async () => {
+    if (!clientId) {
+      toast({
+        title: "No client selected",
+        description: "Select or create a client before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const ok = await saveSection('personality', {
+      personalityTraits: personalityTraits.filter((t) => t.selected).map((t) => t.id),
+      voiceTone: selectedVoiceTone,
+      brandStory,
     });
+    toast({
+      title: ok ? "Brand Personality Saved" : "Save failed",
+      description: ok
+        ? "Your brand personality and story have been saved."
+        : "Something went wrong saving your changes.",
+      variant: ok ? undefined : "destructive",
+    });
+    if (ok) navigate("/identity-designer");
   };
 
   return (
@@ -399,16 +436,16 @@ From our first client to our latest product launch, we've remained focused on on
       <div className="mt-8 flex items-center justify-between pt-6 border-t">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-2 h-2 bg-success rounded-full"></div>
-          All changes saved automatically
+          {clientId ? "Changes are saved to this client's strategy" : "Select a client to save"}
         </div>
         
         <div className="flex gap-3">
           <Button variant="outline">
             Preview Brand Voice
           </Button>
-          <Button onClick={saveChanges} className="gap-2">
+          <Button onClick={saveChanges} disabled={saving || loading} className="gap-2">
             <Save className="h-4 w-4" />
-            Save & Continue
+            {saving ? "Saving…" : "Save & Continue"}
           </Button>
         </div>
       </div>
