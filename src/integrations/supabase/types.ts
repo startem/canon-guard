@@ -267,6 +267,56 @@ export type Database = {
           },
         ]
       }
+      baselines: {
+        Row: {
+          audits_count: number
+          category_scores: Json
+          client_id: string
+          created_at: string
+          created_by: string | null
+          findings_count: number
+          id: string
+          issues_count: number
+          label: string
+          notes: string | null
+          overall_score: number
+        }
+        Insert: {
+          audits_count?: number
+          category_scores?: Json
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          findings_count?: number
+          id?: string
+          issues_count?: number
+          label?: string
+          notes?: string | null
+          overall_score?: number
+        }
+        Update: {
+          audits_count?: number
+          category_scores?: Json
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          findings_count?: number
+          id?: string
+          issues_count?: number
+          label?: string
+          notes?: string | null
+          overall_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "baselines_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boilerplate_items: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
