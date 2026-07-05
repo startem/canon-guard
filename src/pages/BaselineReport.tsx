@@ -204,7 +204,7 @@ export const BaselineReport = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">Currently at {score}%. Review findings and open issues to lift this score.</p>
-                  <Link to="/brand-management">
+                  <Link to={`/audit-details/${category}`}>
                     <Button variant="outline" size="sm" className="w-full">
                       Review Category <ArrowRight className="w-3 h-3 ml-2" />
                     </Button>
