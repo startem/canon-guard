@@ -73,6 +73,12 @@ These look finished but store nothing (data vanishes on reload):
 6. Analytics Dashboard on real audit/issue/notification data with working filters.
 7. User Management on real `agency_members`/`profiles` (invite, role change) — replace localStorage.
 
+**Wave 3 status (built + typechecks pass + rendered live with the authenticated session; no console errors):**
+- `useAnalytics` hook aggregates real audits + issues for the current client into health-trend, compliance-by-type, open-issues-by-severity, and category-breakdown, all filtered by a working date range.
+- `AnalyticsDashboard` rewritten on that hook with designed empty/loading states (verified: shows "No client selected" empty state when no client is chosen — correct, DB has no clients yet). Live charts/metrics path is wired but not yet verified with seeded audit data.
+- `useTeamManagement` hook + `invite-member` edge function (deployed): lists real members, owner/admin role changes and removal via RLS, invite existing/new users by email via service role.
+- `UserManagementPage` rewritten off localStorage onto real `agency_members`/`profiles` (verified live: renders the real Owner member, role/join date, invite dialog).
+
 **Wave 4 — Strategy flow + automation.**
 8. Persist the 6-page Strategy Builder into the Brand Canon.
 9. Version history + backup/restore against a real snapshot table.
