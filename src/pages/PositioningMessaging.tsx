@@ -455,7 +455,7 @@ const PositioningMessaging = () => {
       <div className="mt-8 flex items-center justify-between pt-6 border-t">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-2 h-2 bg-success rounded-full"></div>
-          All changes saved automatically
+          {clientId ? "Changes are saved to this client's strategy" : "Select a client to save"}
         </div>
         
         <div className="flex gap-3">
