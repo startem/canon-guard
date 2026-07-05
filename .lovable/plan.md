@@ -84,6 +84,13 @@ These look finished but store nothing (data vanishes on reload):
 9. Version history + backup/restore against a real snapshot table.
 10. Execute `audit_schedules` (pg_cron or scheduled function) + notifications for overdue issues and expiring legal items.
 
+**Wave 4 status — item 8 (built + typechecks pass + verified live):**
+- New `brand_strategy` table (one JSONB row per client) with GRANTs + RLS via `has_client_access`.
+- `useBrandStrategy` hook loads/upserts per-client strategy, exposing per-section `saveSection`.
+- All 6 Strategy Builder pages now persist real data and hydrate on load: Strategy Builder (purpose/vision/mission/pillars), Positioning & Messaging, Personality & Story, Identity Designer, Experience & Operations (touchpoints, icons re-mapped by name), Visibility & Growth (SEO/campaigns/analytics, dates serialised). Each blocks saving without a selected client.
+- Verified end-to-end via Playwright with the live authenticated session: created a client, saved a purpose, reloaded, value persisted (DB row confirmed); test client removed afterward.
+- Remaining in Wave 4: item 9 (version history + backup/restore snapshot table) and item 10 (execute `audit_schedules` + overdue/expiring notifications) — not started.
+
 ## 7. Decisions I need from you
 
 - **Scope now:** approve the full 4-wave roadmap, or start with Wave 1 only (fix the broken core loop first)?
