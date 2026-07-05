@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { TouchpointDetailModal } from "@/components/TouchpointDetailModal";
-import { Plus, Edit, Eye, Globe, Smartphone, Headphones, Package, Calendar, Mail, Store, MessageCircle, Check, Target, Layers } from "lucide-react";
+import { Plus, Edit, Eye, Globe, Smartphone, Headphones, Package, Calendar, Mail, Store, MessageCircle, Check, Target, Layers, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useBrandStrategy } from "@/hooks/useBrandStrategy";
+import { useNavigate } from "react-router-dom";
 
 interface Touchpoint {
   id: string;
@@ -85,6 +87,18 @@ const statusConfig = {
   'non-compliant': { color: 'bg-red-500', text: 'Non-Compliant', textColor: 'text-red-700' }
 };
 
+// Icons can't be serialised to JSON, so map by touchpoint name on load.
+const iconByName: Record<string, any> = {
+  Website: Globe,
+  'Mobile App': Smartphone,
+  'Customer Support': Headphones,
+  Packaging: Package,
+  Events: Calendar,
+  'Email Marketing': Mail,
+  'Social Media': MessageCircle,
+};
+const iconFor = (name: string) => iconByName[name] ?? Store;
+
 export function ExperienceOperations() {
   const [touchpoints, setTouchpoints] = useState<Touchpoint[]>(initialTouchpoints);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -92,6 +106,40 @@ export function ExperienceOperations() {
   const [editingTouchpoint, setEditingTouchpoint] = useState<Touchpoint | null>(null);
   const [selectedTouchpoint, setSelectedTouchpoint] = useState<Touchpoint | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { clientId, data, loading, saving, saveSection } = useBrandStrategy();
+
+  useEffect(() => {
+    if (data.experience?.touchpoints && Array.isArray(data.experience.touchpoints)) {
+      setTouchpoints(
+        (data.experience.touchpoints as any[]).map((tp) => ({
+          ...tp,
+          icon: iconFor(tp.name),
+        }))
+      );
+    }
+  }, [data.experience]);
+
+  const handleSaveAll = async () => {
+    if (!clientId) {
+      toast({
+        title: "No client selected",
+        description: "Select or create a client before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const serialisable = touchpoints.map(({ icon, ...rest }) => rest);
+    const ok = await saveSection('experience', { touchpoints: serialisable });
+    toast({
+      title: ok ? "Touchpoints Saved" : "Save failed",
+      description: ok
+        ? "Your experience touchpoints have been saved."
+        : "Something went wrong saving your changes.",
+      variant: ok ? undefined : "destructive",
+    });
+    if (ok) navigate("/visibility-growth");
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -194,6 +242,10 @@ export function ExperienceOperations() {
             <Button variant="outline" onClick={handleBulkComplete}>
               <Target className="h-4 w-4 mr-2" />
               Complete All Touchpoints
+            </Button>
+            <Button variant="outline" onClick={handleSaveAll} disabled={saving || loading}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? "Saving…" : "Save & Continue"}
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Lightbulb, Plus, Edit3, Save, X, Compass } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { StrategyProgress } from '@/components/StrategyProgress';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useBrandStrategy } from '@/hooks/useBrandStrategy';
 
 interface StrategyPillar {
   id: string;
@@ -21,6 +22,7 @@ interface StrategyPillar {
 const BrandStrategyBuilder: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { clientId, data, loading, saving, saveSection } = useBrandStrategy();
   
   const [strategy, setStrategy] = useState({
     purpose: '',
@@ -32,6 +34,18 @@ const BrandStrategyBuilder: React.FC = () => {
   const [editingPillar, setEditingPillar] = useState<StrategyPillar | null>(null);
   const [newPillarTitle, setNewPillarTitle] = useState('');
   const [newPillarDescription, setNewPillarDescription] = useState('');
+
+  // Hydrate from saved strategy when it loads
+  useEffect(() => {
+    if (data.strategy) {
+      setStrategy({
+        purpose: data.strategy.purpose ?? '',
+        vision: data.strategy.vision ?? '',
+        mission: data.strategy.mission ?? '',
+        pillars: (data.strategy.pillars as StrategyPillar[]) ?? [],
+      });
+    }
+  }, [data.strategy]);
 
   const aiSuggestions = {
     purpose: [
@@ -96,13 +110,24 @@ const BrandStrategyBuilder: React.FC = () => {
     }));
   };
 
-  const handleSaveStrategy = () => {
+  const handleSaveStrategy = async () => {
+    if (!clientId) {
+      toast({
+        title: "No client selected",
+        description: "Select or create a client before saving your strategy.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const ok = await saveSection('strategy', strategy);
     toast({
-      title: "Strategy Saved",
-      description: "Your brand strategy has been successfully updated.",
+      title: ok ? "Strategy Saved" : "Save failed",
+      description: ok
+        ? "Your brand strategy has been saved."
+        : "Something went wrong saving your strategy.",
+      variant: ok ? undefined : "destructive",
     });
-    // Navigate to next step
-    navigate("/positioning-messaging");
+    if (ok) navigate("/positioning-messaging");
   };
 
   const useSuggestion = (field: keyof typeof strategy, suggestion: string) => {
@@ -379,9 +404,9 @@ const BrandStrategyBuilder: React.FC = () => {
               <Button variant="outline">
                 Cancel
               </Button>
-              <Button onClick={handleSaveStrategy} className="bg-primary hover:bg-primary/90">
+              <Button onClick={handleSaveStrategy} disabled={saving || loading} className="bg-primary hover:bg-primary/90">
                 <Save className="h-4 w-4 mr-2" />
-                Save Strategy
+                {saving ? "Saving…" : "Save Strategy"}
               </Button>
             </div>
           </CardContent>

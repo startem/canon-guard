@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useBrandStrategy } from "@/hooks/useBrandStrategy";
 import { 
   Palette, 
   Type, 
@@ -80,6 +82,36 @@ const IdentityDesigner = () => {
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
   
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { clientId, data, loading, saving, saveSection } = useBrandStrategy();
+
+  useEffect(() => {
+    if (data.identity) {
+      if (Array.isArray(data.identity.colorTokens)) setColorTokens(data.identity.colorTokens as ColorToken[]);
+      if (Array.isArray(data.identity.typographyScale)) setTypographyScale(data.identity.typographyScale as TypographyScale[]);
+      if (Array.isArray(data.identity.logoVariants)) setLogoVariants(data.identity.logoVariants as LogoVariant[]);
+    }
+  }, [data.identity]);
+
+  const handleSave = async () => {
+    if (!clientId) {
+      toast({
+        title: "No client selected",
+        description: "Select or create a client before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const ok = await saveSection('identity', { colorTokens, typographyScale, logoVariants });
+    toast({
+      title: ok ? "Identity Saved" : "Save failed",
+      description: ok
+        ? "Your visual identity system has been saved."
+        : "Something went wrong saving your changes.",
+      variant: ok ? undefined : "destructive",
+    });
+    if (ok) navigate("/experience-operations");
+  };
 
   const addColorToken = () => {
     const newToken: ColorToken = {
@@ -513,16 +545,16 @@ const IdentityDesigner = () => {
       <div className="mt-8 flex items-center justify-between pt-6 border-t">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-2 h-2 bg-success rounded-full"></div>
-          All changes saved automatically
+          {clientId ? "Changes are saved to this client's strategy" : "Select a client to save"}
         </div>
         
         <div className="flex gap-3">
           <Button variant="outline">
             Preview Identity System
           </Button>
-          <Button className="gap-2">
+          <Button onClick={handleSave} disabled={saving || loading} className="gap-2">
             <Save className="h-4 w-4" />
-            Save & Export
+            {saving ? "Saving…" : "Save & Continue"}
           </Button>
         </div>
       </div>
