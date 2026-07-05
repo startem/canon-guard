@@ -61,7 +61,13 @@ These look finished but store nothing (data vanishes on reload):
 4. Fix `run-audit` CORS import; verify via edge logs.
 
 **Wave 2 — Deliver the differentiator (Baselines & Drift).**
-5. Add `baselines` + `brands` tables; real ingest snapshot; compute drift from successive audit scores; wire Baseline Report + a Drift trend view to live data.
+5. Add `baselines` table; real ingest snapshot; compute drift from successive audit scores; wire Baseline Report + a Drift trend view to live data.
+
+**Wave 2 status (built + typechecks pass; not yet verified with live data — DB has no clients/audits):**
+- `baselines` table created with GRANTs + RLS (agency→client access via `has_client_access`).
+- `useBaselines` hook: captures a live snapshot (latest audit score per type → overall + per-category + findings/issues counts) and computes drift vs the reference baseline.
+- `IngestBaseline` now captures a real baseline from audit data (no more fake `setTimeout`).
+- `BaselineReport` renders current vs baseline score, a drift trend area chart, per-category breakdown, and prioritised next steps linking to real audit findings.
 
 **Wave 3 — Real data surfaces.**
 6. Analytics Dashboard on real audit/issue/notification data with working filters.
