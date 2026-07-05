@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { CrossFlowLinks } from "@/components/CrossFlowLinks";
@@ -93,7 +94,11 @@ export default function AnalyticsDashboard() {
           icon={ClipboardCheck}
           title="No analytics yet"
           description="Run audits for this client to start building live brand-health trends and issue analytics."
-          action={{ label: "Go to audits", to: "/audit-details/brand-consistency" }}
+          action={
+            <Button asChild>
+              <Link to="/audit-details/brand-consistency">Go to audits</Link>
+            </Button>
+          }
         />
       ) : (
         <>
