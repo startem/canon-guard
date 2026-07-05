@@ -404,9 +404,9 @@ const BrandStrategyBuilder: React.FC = () => {
               <Button variant="outline">
                 Cancel
               </Button>
-              <Button onClick={handleSaveStrategy} className="bg-primary hover:bg-primary/90">
+              <Button onClick={handleSaveStrategy} disabled={saving || loading} className="bg-primary hover:bg-primary/90">
                 <Save className="h-4 w-4 mr-2" />
-                Save Strategy
+                {saving ? "Saving…" : "Save Strategy"}
               </Button>
             </div>
           </CardContent>
